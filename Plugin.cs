@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace EasyPZ
 {
@@ -70,7 +71,7 @@ namespace EasyPZ
         //Restarts level entirely
         private void QuickRestart()
         {
-            if (om != null)
+            if (om != null && SceneManager.GetActiveScene().name != "Main Menu")
             {
                 om.RestartMission();
             }
@@ -116,7 +117,7 @@ namespace EasyPZ
         //Checks if time goal has been failed: A rank.
         private void CheckTimeGoalFailed()
         {
-            if (sman != null && enablePMode)
+            if (sman != null && enablePMode && SceneManager.GetActiveScene().name != "Main Menu")
             {
                 if (sman.GetRanks(sman.timeRanks, sman.seconds, true, false) == "<color=#FF6A00>A</color>")
                 {
