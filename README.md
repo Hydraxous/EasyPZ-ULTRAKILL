@@ -31,3 +31,6 @@ ________________________________________________________________________________
 1. Updated stat window to have the stat goals for each level in clear comparison with displayed stats
 2. Better looking status display for P-Mode
 3. Funny toggleable sound effects :)
+
+
+Side note this is my first ever mod so please excuse the awful optimization I will fix it soon.
