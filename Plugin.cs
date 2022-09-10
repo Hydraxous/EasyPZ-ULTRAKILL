@@ -225,11 +225,6 @@ namespace EasyPZ
             
         }
 
-        private void GetReverseCounter()
-        {
-
-        }
-
         private void LoadAssets()
         {
             try
