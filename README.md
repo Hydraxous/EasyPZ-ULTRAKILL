@@ -1,5 +1,5 @@
 # EasyPZ-ULTRAKILL
-Tiny QoL mod for ULTRAKILL to use the pause menu less when going for P-Ranks.
+Tiny QoL mod for ULTRAKILL to give you a bit more info about the P rank requirements, restart hotkeys, and automatic restarts.
 
 
 _______________________________________________________________________________________________________________________________________
