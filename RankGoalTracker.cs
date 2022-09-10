@@ -74,12 +74,13 @@ namespace EasyPZ
             {
                 pModeStatusText = transform.Find("StatusContainer/PModeStatusText").gameObject.GetComponent<Text>();
                 timeGoalText = transform.Find("GoalsContainer/TimeGoalContainer/TimeGoalText").gameObject.GetComponent<Text>();
+                //timeGoalText.fontSize = 18;
                 killGoalText = transform.Find("GoalsContainer/KillGoalContainer/KillGoalText").gameObject.GetComponent<Text>();
-                killGoalText.fontSize = 20;
+               // killGoalText.fontSize = 21;
                 styleGoalText = transform.Find("GoalsContainer/StyleGoalContainer/StyleGoalText").gameObject.GetComponent<Text>();
-                styleGoalText.fontSize = 20;
+                //styleGoalText.fontSize = 21;
                 speedMetricText = transform.Find("SpeedometerContainer/SpeedMetricText").gameObject.GetComponent<Text>();
-                speedMetricText.fontSize = 16;
+                //speedMetricText.fontSize = 16;
                 missingTexts = false;
             }catch (System.Exception e)
             {
@@ -97,7 +98,7 @@ namespace EasyPZ
                 seconds -= 60f;
                 minutes += 1f;
             }
-            timeGoalText.text = minutes + ":" + seconds.ToString("00.000");
+            timeGoalText.text = minutes + ":" + seconds.ToString("00.00");
             pModeStatusText.text = ezpz.PMode.ToString();
             killGoalText.text = (sman.killRanks[3] - sman.kills).ToString();
             styleGoalText.text = Mathf.Clamp((sman.styleRanks[3] - sman.stylePoints), 0, Mathf.Infinity).ToString();
