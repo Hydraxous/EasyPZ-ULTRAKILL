@@ -29,7 +29,7 @@ namespace EasyPZ
         private GameObject PStatusIndicatorPrefab;
         private static UIPositionData PSI_UIPData = new UIPositionData(Vector2.zero, new Vector2(100,100),Vector2.one,Vector2.one,Vector2.one);
         private GameObject RankGoalIndicatorPrefab;
-        private static UIPositionData RGI_UIPData = new UIPositionData(new Vector2(-10, 10), new Vector2(150f, 202.5f), new Vector2(1,0), new Vector2(1, 0), new Vector2(1, 0));
+        private static UIPositionData RGI_UIPData = new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
 
 
         public GameObject rankTrackerUIElement;
