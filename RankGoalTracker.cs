@@ -100,7 +100,7 @@ namespace EasyPZ
             }
             timeGoalText.text = minutes + ":" + seconds.ToString("00.00");
             pModeStatusText.text = ezpz.PMode.ToString();
-            killGoalText.text = (sman.killRanks[3] - sman.kills).ToString();
+            killGoalText.text = Mathf.Clamp((sman.killRanks[3] - sman.kills),0,Mathf.Infinity).ToString();
             styleGoalText.text = Mathf.Clamp((sman.styleRanks[3] - sman.stylePoints), 0, Mathf.Infinity).ToString();
             speedMetricText.text = player.transform.GetComponent<Rigidbody>().velocity.magnitude.ToString("00.00");
         }
