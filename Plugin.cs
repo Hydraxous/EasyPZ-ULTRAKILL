@@ -69,20 +69,27 @@ namespace EasyPZ
 
         private void LateUpdate()
         {
-            if (PMode || InLevel())
+            try
             {
-                FindThings();
-                if (player.dead) { FailPRank(RestartType.Instant); } //Checks if player died.
-                CheckTimeGoalFailed();
-            }
+                if (PMode || InLevel())
+                {
+                    FindThings();
+                    if (player.dead) { FailPRank(RestartType.Instant); } //Checks if player died.
+                    CheckTimeGoalFailed();
+                }
 
-            if (rankTrackerUIElement == null && player != null)
+                if (rankTrackerUIElement == null && player != null)
+                {
+                    CreateTracker();
+                }
+                else
+                {
+                    UpdateTracker();
+                }
+            } catch (System.Exception e)
             {
-                CreateTracker();
-            }else
-            {
-                UpdateTracker();
-            }
+                return;
+            } 
         }
 
         //Finds instances for operation
@@ -130,7 +137,7 @@ namespace EasyPZ
         {
             if (sman != null)
             {
-                if (sman.GetRanks(sman.timeRanks, sman.seconds, true, false) == "<color=#FF6A00>A</color>")
+                if (sman.seconds > sman.timeRanks[3])
                 {
                     FailPRank(RESTART_TYPE.Value);
                 }
