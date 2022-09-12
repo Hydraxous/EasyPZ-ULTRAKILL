@@ -8,7 +8,7 @@ using EasyPZ.Properties;
 
 namespace EasyPZ
 {
-    [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "1.0.1")]
+    [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "1.1.1")]
     public class EasyPZ : BaseUnityPlugin
     {
         private enum RestartType {Explosion, Instant}
