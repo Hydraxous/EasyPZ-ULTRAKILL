@@ -28,7 +28,14 @@ namespace EasyPZ
 
         private void Update()
         {
-            CheckPatch();
+            try
+            {
+                CheckPatch();
+            }catch(System.Exception e)
+            {
+
+            }
+            
         }
 
         //Checks if patch has been applied. if not, applies it.

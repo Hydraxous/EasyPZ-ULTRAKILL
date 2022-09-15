@@ -12,7 +12,12 @@ namespace EasyPZ
 
         private StatsManager sman;
         private NewMovement player;
-        public EasyPZUIPatch ezpz;
+        private EasyPZUIPatch ezpz;
+        private EnemyTracker enemyTracker;
+
+        private int lastEnemyCount = 0;
+        private float enemyCountUpdateInterval = 1.5f;
+        private float timeUntilCountEnemies = 0.0f;
 
         private void Start()
         {
@@ -22,6 +27,17 @@ namespace EasyPZ
         private void Update()
         {
             UpdateDisplay();
+        }
+
+        private int GetCurrentEnemyCount()
+        {
+            if (timeUntilCountEnemies < Time.time)
+            {
+                timeUntilCountEnemies = Time.time + enemyCountUpdateInterval;
+                lastEnemyCount = enemyTracker.GetCurrentEnemies().Count;
+                return lastEnemyCount;
+            }
+            return lastEnemyCount;
         }
 
         private void FindThings()
@@ -36,7 +52,7 @@ namespace EasyPZ
             ezpz = gameObject.GetComponentInParent<EasyPZUIPatch>();
             sman = MonoSingleton<StatsManager>.Instance;
             player = MonoSingleton<NewMovement>.Instance;
-
+            enemyTracker = MonoSingleton<EnemyTracker>.Instance;
         }
 
         private void FindTextObjects()
@@ -63,7 +79,7 @@ namespace EasyPZ
             }
             timeGoalText.text = minutes + ":" + seconds.ToString("00.00");
             pModeStatusText.text = ezpz.PMode.ToString();
-            killGoalText.text = Mathf.Clamp((sman.killRanks[3] - sman.kills),0,Mathf.Infinity).ToString(); //TODO ADD ROOM ENEMIES
+            killGoalText.text = String.Format("[<color=red>{0}</color>] ", lastEnemyCount + Mathf.Clamp((sman.killRanks[3] - sman.kills),0,Mathf.Infinity).ToString());
             styleGoalText.text = Mathf.Clamp((sman.styleRanks[3] - sman.stylePoints), 0, Mathf.Infinity).ToString();
             speedMetricText.text = player.transform.GetComponent<Rigidbody>().velocity.magnitude.ToString("00.00");
         }

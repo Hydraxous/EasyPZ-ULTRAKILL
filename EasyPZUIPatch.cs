@@ -27,6 +27,7 @@ namespace EasyPZ
         private NewMovement player;
         private StatsManager sman;
         private LevelStats lStats;
+        private AssistController assCon;
 
         private void Start()
         {
@@ -65,21 +66,16 @@ namespace EasyPZ
             return true;
         }
 
-        //todo add check if p rank missed.
-        private bool AtFinalRank()
-        {
-            return false;
-        }
-
         private void CheckPRankStatus()
         {
-            if(!InLevel()) { return; } //TODO check if cheats enabled here.
+            if(!InLevel()) { return; }
+            if (assCon.cheatsEnabled || assCon.majorEnabled) { PMode = false; } 
             if (!PMode) { return; }
 
             bool fail = false;
 
             if (player.dead || sman.seconds > sman.timeRanks[3]) { fail=true; } //Checks if player died.
-            else if (AtFinalRank() && (sman.kills > sman.killRanks[3] || sman.stylePoints > sman.styleRanks[3])) { fail = true; } //checks if you failed p req at the end of the level.
+            else if (sman.infoSent && (sman.kills > sman.killRanks[3] || sman.stylePoints > sman.styleRanks[3])) { fail = true; } //checks if you failed p req at the end of the level.
 
             if(fail) { FailPRank(); }
         }
@@ -101,7 +97,7 @@ namespace EasyPZ
 
         private void InstantiateTracker()
         {
-            RectTransform canvas = MonoSingleton<CanvasController>.Instance.gameObject.GetComponent<RectTransform>();
+            RectTransform canvas = gameObject.GetComponent<RectTransform>();
             GameObject prefab = new GameObject();
             switch (HUD_INFO_TYPE)
             {
@@ -122,6 +118,7 @@ namespace EasyPZ
             om = MonoSingleton<OptionsManager>.Instance;
             sman = MonoSingleton<StatsManager>.Instance;
             player = MonoSingleton<NewMovement>.Instance;
+            assCon = MonoSingleton<AssistController>.Instance;
             lStats = GameObject.FindObjectOfType<LevelStatsEnabler>().transform.GetChild(0).GetComponent<LevelStats>();
         }
 
