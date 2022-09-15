@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace EasyPZ
 {
-    public class RankGoalTracker : MonoBehaviour
+    public class RankGoalIndicator : MonoBehaviour
     {
         Text pModeStatusText, timeGoalText, killGoalText, styleGoalText, speedMetricText;
 

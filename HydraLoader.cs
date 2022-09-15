@@ -11,9 +11,11 @@ namespace EasyPZ
 
         private static List<CustomAssetData> dataToRegister = new List<CustomAssetData>();
 
-        public static Dictionary<string, UnityEngine.Object> dataRegistry = new Dictionary<string, UnityEngine.Object>();
+        public static Dictionary<string, DataFile> dataRegistry = new Dictionary<string, DataFile>();
 
         public static Dictionary<string, GameObject> prefabRegistry = new Dictionary<string, GameObject>();
+
+        public static Dictionary<string, UIPositionData> uIDataRegistry = new Dictionary<string, UIPositionData>();
 
         public static bool dataRegistered = false;
         public static bool assetsRegistered = false;
@@ -101,5 +103,5 @@ namespace EasyPZ
         }
     }
 
-    public class DataFile : UnityEngine.Object { }
+    public class DataFile { }
 }

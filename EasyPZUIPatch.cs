@@ -47,7 +47,15 @@ namespace EasyPZ
                 FailPRank();
             }
 
-            UpdateTracker();
+            if (rankTrackerUIElement != null)
+            {
+                UpdateTracker();
+            }
+            else
+            {
+                InstantiateTracker();
+            }
+            
         }
 
         private void LateUpdate()
@@ -98,18 +106,19 @@ namespace EasyPZ
         private void InstantiateTracker()
         {
             RectTransform canvas = gameObject.GetComponent<RectTransform>();
-            GameObject prefab = new GameObject();
+            GameObject trackerPrefab;
             switch (HUD_INFO_TYPE)
             {
-                case HUDInfoType.Default:
-                    HydraLoader.prefabRegistry.TryGetValue("RankGoalTracker", out prefab);
+                default:
+                    HydraLoader.prefabRegistry.TryGetValue("RankGoalIndicator", out trackerPrefab);
+                    trackerPrefab.SetActive(false);
                     break;
                 case HUDInfoType.Simple:
-                    HydraLoader.prefabRegistry.TryGetValue("PStatusIndicator", out prefab);
+                    HydraLoader.prefabRegistry.TryGetValue("PStatusIndicator", out trackerPrefab);
+                    trackerPrefab.SetActive(false);
                     break;
             }
-            prefab.SetActive(false);
-            rankTrackerUIElement = GameObject.Instantiate<GameObject>(prefab, canvas);
+            rankTrackerUIElement = GameObject.Instantiate<GameObject>(trackerPrefab, canvas);
         }
 
         //Finds instances for operation

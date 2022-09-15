@@ -18,8 +18,17 @@ namespace EasyPZ
 
         private void GetPositionData()
         {
-            HydraLoader.dataRegistry.TryGetValue(gameObject.name+"_UIPD", out Object dataGet);
-            uIPositionData = (UIPositionData) dataGet;
+            try
+            {
+                HydraLoader.uIDataRegistry.TryGetValue(gameObject.name, out UIPositionData uIPositionData);
+
+            }
+            catch(System.Exception e)
+            {
+                Debug.Log("Error getting UIposition data for " + gameObject.name);
+                uIPositionData = new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
+            }
+            
         }
 
         public void CheckPosition()

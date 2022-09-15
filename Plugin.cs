@@ -22,8 +22,14 @@ namespace EasyPZ
 
         private void Awake()
         {
-            RegisterAssets();
-            Logger.LogInfo("EasyPZ Loaded. Good luck on P-ing in all the levels! :D");
+            if (!RegisterAssets())
+            {
+                Logger.LogInfo("EasyPZ Failed to load assets. Mod is disabled.");
+                this.enabled = false;
+            }else
+            {
+                Logger.LogInfo("EasyPZ Loaded. Good luck on P-ing in all the levels! :D");
+            }
         }
 
         private void Update()
@@ -34,14 +40,24 @@ namespace EasyPZ
             }catch(System.Exception e)
             {
 
-            }
-            
+            }   
         }
+
+        private bool InLevel()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (sceneName == "Intro" || sceneName == "Main Menu" || sceneName == "Cybergrind" || sceneName == "Sandbox")
+            {
+                return false;
+            }
+            return true;
+        }
+
 
         //Checks if patch has been applied. if not, applies it.
         private void CheckPatch()
         {
-            if (ezPzPatch != null) {return;}
+            if (ezPzPatch != null || !InLevel()) {return;}
 
             CanvasController canvas = MonoSingleton<CanvasController>.Instance;
 
@@ -59,15 +75,15 @@ namespace EasyPZ
         }
 
         //Calls on HydraLoader to register and prepare assets for use.
-        private void RegisterAssets()
+        private bool RegisterAssets()
         {
             new HydraLoader.CustomAsset("PStatusIndicatorMini", new Component[] { new UIAutoPositioner() });
-            new HydraLoader.CustomAssetData("PStatusIndicatorMini_UIPD", new UIPositionData(Vector2.zero, new Vector2(100, 100), Vector2.one, Vector2.one, Vector2.one));
+            HydraLoader.uIDataRegistry.Add("PStatusIndicatorMini", new UIPositionData(Vector2.zero, new Vector2(100, 100), Vector2.one, Vector2.one, Vector2.one));
 
-            new HydraLoader.CustomAsset("RankGoalIndicator", new Component[] { new UIAutoPositioner(), new RankGoalTracker() });
-            new HydraLoader.CustomAssetData("RankGoalIndicator_UIPD", new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0)));
+            new HydraLoader.CustomAsset("RankGoalIndicator", new Component[] { new UIAutoPositioner(), new RankGoalIndicator() });
+            HydraLoader.uIDataRegistry.Add("RankGoalIndicator", new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0)));
 
-            HydraLoader.RegisterAll();
+            return HydraLoader.RegisterAll();
         }
 
         //binds BepInEx config
