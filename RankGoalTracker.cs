@@ -12,10 +12,7 @@ namespace EasyPZ
 
         private StatsManager sman;
         private NewMovement player;
-        public EasyPZ ezpz;
-
-        private bool missingObjects = true;
-        private bool missingTexts = true;
+        public EasyPZUIPatch ezpz;
 
         private void Start()
         {
@@ -23,70 +20,36 @@ namespace EasyPZ
         }
 
         private void Update()
-        {         
-            if (missingObjects || missingTexts)
-            {
-                FindThings();
-            }
-            else
-            { 
-                try
-                {
-                    UpdateDisplay();
-                }catch(Exception e)
-                {
-                    missingObjects = true;
-                }
-            }
+        {
+            UpdateDisplay();
         }
 
         private void FindThings()
         {
-            if (missingObjects)
-            {
-                FindDependants();
-            }
-
-            if (missingTexts)
-            {
-                FindTextObjects();
-            }
+            FindDependants();
+            FindTextObjects();
         }
 
         private void FindDependants()
         {
-            try
-            {
-                ezpz = GameObject.FindObjectOfType<EasyPZ>();
-                sman = MonoSingleton<StatsManager>.Instance;
-                player = MonoSingleton<NewMovement>.Instance;
-                missingObjects = false;
-            }
-            catch (System.Exception e)
-            {
-                missingObjects = true;
-            }
+
+            ezpz = gameObject.GetComponentInParent<EasyPZUIPatch>();
+            sman = MonoSingleton<StatsManager>.Instance;
+            player = MonoSingleton<NewMovement>.Instance;
+
         }
 
         private void FindTextObjects()
         {
-            try
-            {
-                pModeStatusText = transform.Find("StatusContainer/PModeStatusText").gameObject.GetComponent<Text>();
-                timeGoalText = transform.Find("GoalsContainer/TimeGoalContainer/TimeGoalText").gameObject.GetComponent<Text>();
-                //timeGoalText.fontSize = 18;
-                killGoalText = transform.Find("GoalsContainer/KillGoalContainer/KillGoalText").gameObject.GetComponent<Text>();
-               // killGoalText.fontSize = 21;
-                styleGoalText = transform.Find("GoalsContainer/StyleGoalContainer/StyleGoalText").gameObject.GetComponent<Text>();
-                //styleGoalText.fontSize = 21;
-                speedMetricText = transform.Find("SpeedometerContainer/SpeedMetricText").gameObject.GetComponent<Text>();
-                //speedMetricText.fontSize = 16;
-                missingTexts = false;
-            }catch (System.Exception e)
-            {
-                missingTexts = true;
-            }
-            
+            pModeStatusText = transform.Find("StatusContainer/PModeStatusText").gameObject.GetComponent<Text>();
+            timeGoalText = transform.Find("GoalsContainer/TimeGoalContainer/TimeGoalText").gameObject.GetComponent<Text>();
+            //timeGoalText.fontSize = 18;
+            killGoalText = transform.Find("GoalsContainer/KillGoalContainer/KillGoalText").gameObject.GetComponent<Text>();
+            // killGoalText.fontSize = 21;
+            styleGoalText = transform.Find("GoalsContainer/StyleGoalContainer/StyleGoalText").gameObject.GetComponent<Text>();
+            //styleGoalText.fontSize = 21;
+            speedMetricText = transform.Find("SpeedometerContainer/SpeedMetricText").gameObject.GetComponent<Text>();
+            //speedMetricText.fontSize = 16;
         }
 
         public void UpdateDisplay()
@@ -100,14 +63,10 @@ namespace EasyPZ
             }
             timeGoalText.text = minutes + ":" + seconds.ToString("00.00");
             pModeStatusText.text = ezpz.PMode.ToString();
-            killGoalText.text = Mathf.Clamp((sman.killRanks[3] - sman.kills),0,Mathf.Infinity).ToString();
+            killGoalText.text = Mathf.Clamp((sman.killRanks[3] - sman.kills),0,Mathf.Infinity).ToString(); //TODO ADD ROOM ENEMIES
             styleGoalText.text = Mathf.Clamp((sman.styleRanks[3] - sman.stylePoints), 0, Mathf.Infinity).ToString();
             speedMetricText.text = player.transform.GetComponent<Rigidbody>().velocity.magnitude.ToString("00.00");
         }
 
-        private void OnEnable()
-        {
-            FindThings();
-        }
     }
 }

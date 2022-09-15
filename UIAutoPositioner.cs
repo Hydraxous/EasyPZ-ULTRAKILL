@@ -6,18 +6,20 @@ namespace EasyPZ
 {
     public class UIAutoPositioner : MonoBehaviour
     {
-        public UIPositionData uIPositionData;
+        private UIPositionData uIPositionData;
         private RectTransform rTransform;
 
         private void Start()
         {
+            GetPositionData();
             rTransform = GetComponent<RectTransform>();
             CheckPosition();
         }
 
-        public void SetPositionData(UIPositionData data)
+        private void GetPositionData()
         {
-            uIPositionData = data;
+            HydraLoader.dataRegistry.TryGetValue(gameObject.name+"_UIPD", out Object dataGet);
+            uIPositionData = (UIPositionData) dataGet;
         }
 
         public void CheckPosition()
@@ -67,7 +69,7 @@ namespace EasyPZ
         }
     }
 
-    public class UIPositionData
+    public class UIPositionData : DataFile
     {
         public Vector2 aPos, size, anchorMin, anchorMax, pivot;
 
