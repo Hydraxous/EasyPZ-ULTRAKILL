@@ -6,7 +6,7 @@ namespace EasyPZ
 {
     public class UIAutoPositioner : MonoBehaviour
     {
-        private UIPositionData uIPositionData;
+        public UIPositionData uIPositionData = new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
         private RectTransform rTransform;
 
         private void Start()
@@ -21,12 +21,10 @@ namespace EasyPZ
             try
             {
                 HydraLoader.uIDataRegistry.TryGetValue(gameObject.name, out UIPositionData uIPositionData);
-
             }
             catch(System.Exception e)
             {
                 Debug.Log("Error getting UIposition data for " + gameObject.name);
-                uIPositionData = new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
             }
             
         }
@@ -54,13 +52,11 @@ namespace EasyPZ
         private bool ValidatePosition()
         {
 
-            if (
-                rTransform.anchoredPosition != uIPositionData.aPos ||
+            if (rTransform.anchoredPosition != uIPositionData.aPos ||
                 rTransform.anchorMax != uIPositionData.anchorMax ||
                 rTransform.anchorMin != uIPositionData.anchorMin ||
                 rTransform.pivot != uIPositionData.pivot ||
-                rTransform.sizeDelta != uIPositionData.size
-                )
+                rTransform.sizeDelta != uIPositionData.size)
             {
                 return false;
             }
@@ -78,7 +74,7 @@ namespace EasyPZ
         }
     }
 
-    public class UIPositionData : DataFile
+    public class UIPositionData
     {
         public Vector2 aPos, size, anchorMin, anchorMax, pivot;
 
