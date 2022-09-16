@@ -16,18 +16,13 @@ ________________________________________________________________________________
 **Remaining Goals UI**
 _______________________________________________________________________________________________________________________________________
 Adds a stat UI on the bottom right which displays in order:
- - P-Mode Status
- - Time remaining until you lose S rank
- - Kills remaining until you get S rank
- - Style points remaining until S rank
- - Movement speed in meters per second.
+![TrackerUI](https://cdn.discordapp.com/attachments/432329547023908884/1020131487611375666/wau8wd9ajwid.png)
  
  This UI will only show up when you press TAB or it can be configured to stay on the screen at all times when you are in a level. 
  Check the config file to change the options. You can also disable it entirely and switch to the smaller indicator.
 
-Here is a picture of the default UI. The Simple one is a small P in a box at the top right corner of the Pause Menu.
-![Default UI Preview](https://cdn.discordapp.com/attachments/432329547023908884/1018269292002824242/asefaefae.PNG)
-
+You can also customize your tracker in terms of placement on screen and color within the config.
+![customTrackers](https://cdn.discordapp.com/attachments/432329547023908884/1020128011552575629/color2.png)
 _______________________________________________________________________________________________________________________________________
 **Quick Restart**
 _______________________________________________________________________________________________________________________________________
