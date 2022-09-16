@@ -8,9 +8,12 @@ ________________________________________________________________________________
 A setting which, when enabled will automatically restart the current level if you 
 1. Die
 2. Fail the time goal required for S rank
+3. Finish the level without the required style/kills for S ranks
+
+When enabling cheats or major assists P-Mode will automatically be disabled. You can still use the restart hotkey however.
 
 P-Mode can be toggled by pressing **P** by default and can be changed in the config file in *BepinEx/config/Hydraxous.ULTRAKILL.EasyPZ.cfg*
-The status of P-Mode can be seen in the pause menu in-game. It's very rudimentary at the moment, soon I will change it to fit game style.
+The status of P-Mode can be seen in the pause menu in-game.
 
 _______________________________________________________________________________________________________________________________________
 **Remaining Goals UI**
