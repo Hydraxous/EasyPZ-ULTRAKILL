@@ -109,16 +109,16 @@ namespace EasyPZ
             RESTART_MISSION = Config.Bind("Binds", "RESTART_MISSION", KeyCode.RightAlt, "Restarts the mission");
             RESTART_TYPE = Config.Bind("General", "RESTART_TYPE", EasyPZUIPatch.RestartType.Instant, "Explosion causes you to explode when you fail P-Rank, instant just restarts the mission without having to click respawn. NOTE: Explosion is not yet implemented and will just make you instantly die when pressing the key.");
             HUD_INFO_TYPE = Config.Bind("General", "HUD_INFO_TYPE", EasyPZUIPatch.HUDInfoType.Default, "Changes hud type. Simple is a tiny P icon in corner when game is paused. Default is the goal UI on the left hand side when stats are turned on.");
-            PMODE_DEFAULT_STATE = Config.Bind("General", "PMODE_DEFAULT_STATE", false, "Sets whether P-Mode should be enabled by default.");
-            ALWAYS_SHOW_TRACKER = Config.Bind("General", "ALWAYS_SHOW_TRACKER", false, "Shows tracker when stats are not open in level.");
+            PMODE_DEFAULT_STATE = Config.Bind("General", "PMODE_DEFAULT_STATE", true, "Sets whether P-Mode should be enabled by default.");
+            ALWAYS_SHOW_TRACKER = Config.Bind("General", "ALWAYS_SHOW_TRACKER", true, "Shows tracker when stats are not open in level.");
             lastPMode = PMODE_DEFAULT_STATE.Value;
 
             //UI OPTIONS
             TRACKER_ANCHOR_POSITION = Config.Bind("Tracker Settings", "TRACKER_ANCHOR_POSITION", UIPositionData.AnchorSpot.bottomRight, "Changes anchored position of the tracker.");
-            TRACKER_BORDER_SIZE = Config.Bind("Tracker Settings", "TRACKER_BORDER_SIZE", 5.0f, "Changes how far from the edge of the screen the tracker is.");
-            TRACKER_BACKGROUND_COLOR = Config.Bind("Tracker Settings", "TRACKER_BACKGROUND_COLOR", new Color(0,0,0,69.0f), "Changes background color of the tracker, the color format is RGBA to Hex here is a helpful tool https://rgbacolorpicker.com/rgba-to-hex the last hex value is transparency. 00 is transparent, FF is opaque");
+            TRACKER_BORDER_SIZE = Config.Bind("Tracker Settings", "TRACKER_BORDER_SIZE", 10.0f, "Changes how far from the edge of the screen the tracker is.");
+            TRACKER_BACKGROUND_COLOR = Config.Bind("Tracker Settings", "TRACKER_BACKGROUND_COLOR", new Color(0,0,0,69.0f), "Changes background color of the tracker, the color format is RGBA to Hex here is a helpful tool https://rgbacolorpicker.com/rgba-to-hex the last hex value is transparency. 00 is transparent, FF is opaque if you want a code similar to most UK Ui use this: 00000059");
             TRACKER_FONT_COLOR = Config.Bind("Tracker Settings", "TRACKER_FONT_COLOR", new Color(255,255,255,210.0f), "Changes font color");
-            TRACKER_HIGHLIGHT_COLOR = Config.Bind("Tracker Settings", "TRACKER_HIGHLIGHT_COLOR", new Color(255,20,63,255f), "Changes the color of the highlighted text.");
+            TRACKER_HIGHLIGHT_COLOR = Config.Bind("Tracker Settings", "TRACKER_HIGHLIGHT_COLOR", new Color(255,0,0,255f), "Changes the color of the highlighted text.");
         }
     }
 }
