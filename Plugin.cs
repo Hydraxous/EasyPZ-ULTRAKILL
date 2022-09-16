@@ -8,7 +8,7 @@ using EasyPZ.Properties;
 
 namespace EasyPZ
 {
-    [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "1.9.0")]
+    [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "2.0.0")]
     public class EasyPZ : BaseUnityPlugin
     {
         public bool lastPMode;
