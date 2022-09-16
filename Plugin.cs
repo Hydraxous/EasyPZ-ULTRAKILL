@@ -59,7 +59,7 @@ namespace EasyPZ
         {
             
             string sceneName = SceneManager.GetActiveScene().name;
-            if (sceneName == "Intro" || sceneName == "Main Menu" || sceneName == "Cybergrind" || sceneName == "Sandbox")
+            if (sceneName == "Intro" || sceneName == "Main Menu" || sceneName == "Endless" || sceneName == "uk_construct")
             {
                 return false;
             }
