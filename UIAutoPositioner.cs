@@ -1,62 +1,90 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace EasyPZ
 {
     public class UIAutoPositioner : MonoBehaviour
     {
-        public UIPositionData uIPositionData = new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
+        
+        public UIPositionData uIData;
         private RectTransform rTransform;
 
-        private void Start()
+        private void Awake()
         {
-            GetPositionData();
-            rTransform = GetComponent<RectTransform>();
-            CheckPosition();
+            GetData();
+            FixPosition();
+            SetColors();
         }
 
-        private void GetPositionData()
+        private void LateUpdate()
         {
-            try
-            {
-                HydraLoader.uIDataRegistry.TryGetValue(gameObject.name, out UIPositionData uIPositionData);
-            }
-            catch(System.Exception e)
-            {
-                Debug.Log("Error getting UIposition data for " + gameObject.name);
-            }
-            
+            CheckPosition();
         }
 
         public void CheckPosition()
         {
-            if (rTransform != null || uIPositionData != null)
+            if (rTransform != null && uIData != null)
             {
                 if (!ValidatePosition())
                 {
                     FixPosition();
+                    SetColors();
                 }
             }
+            else
+            {
+                GetData();
+            }
+        }
+
+        private void GetData()
+        {
+            if (gameObject.name.Contains("Clone"))
+            {
+                gameObject.name = gameObject.name.Replace("(Clone)", "");
+            }
+            HydraLoader.dataRegistry.TryGetValue(gameObject.name + "_UIPD", out UnityEngine.Object obj);
+            uIData = (UIPositionData)obj;
+            rTransform = GetComponent<RectTransform>();
         }
 
         public void FixPosition()
         {
-            rTransform.anchorMin = uIPositionData.anchorMin;
-            rTransform.anchorMax = uIPositionData.anchorMax;
-            rTransform.anchoredPosition = uIPositionData.aPos;
-            rTransform.sizeDelta = uIPositionData.size;
-            rTransform.pivot = uIPositionData.pivot;
+            rTransform.anchorMin = uIData.anchorMin;
+            rTransform.anchorMax = uIData.anchorMax;
+            rTransform.anchoredPosition = uIData.aPos;
+            rTransform.sizeDelta = uIData.size;
+            rTransform.pivot = uIData.pivot;
+        }
+
+        private void SetColors()
+        {
+            gameObject.GetComponent<Image>().color = uIData.bgColor;
+            Text[] textComponents = gameObject.GetComponentsInChildren<Text>();
+            Image[] imageComponents = gameObject.GetComponentsInChildren<Image>();
+            for(int i=0;i<textComponents.Length;i++)
+            {
+                textComponents[i].color = uIData.fontColor;
+            }
+            for(int i=0;i<imageComponents.Length;i++)
+            {
+                if(imageComponents[i].gameObject != gameObject)
+                {
+                    imageComponents[i].color = uIData.fontColor;
+                }
+                
+            }
         }
 
         private bool ValidatePosition()
         {
-
-            if (rTransform.anchoredPosition != uIPositionData.aPos ||
-                rTransform.anchorMax != uIPositionData.anchorMax ||
-                rTransform.anchorMin != uIPositionData.anchorMin ||
-                rTransform.pivot != uIPositionData.pivot ||
-                rTransform.sizeDelta != uIPositionData.size)
+            if (rTransform.anchoredPosition != uIData.aPos ||
+                rTransform.anchorMax != uIData.anchorMax ||
+                rTransform.anchorMin != uIData.anchorMin ||
+                rTransform.pivot != uIData.pivot ||
+                rTransform.sizeDelta != uIData.size)
             {
                 return false;
             }
@@ -74,17 +102,55 @@ namespace EasyPZ
         }
     }
 
-    public class UIPositionData
+    public class UIPositionData : DataFile
     {
-        public Vector2 aPos, size, anchorMin, anchorMax, pivot;
 
-        public UIPositionData(Vector2 aPos, Vector2 size, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+        public Vector2 aPos, size, anchorMin, anchorMax, pivot;
+        public float borderSize;
+        public enum AnchorSpot { topRight, topLeft, bottomRight, bottomLeft }
+        public AnchorSpot anchorSpot;
+        public Color bgColor;
+        public Color fontColor;
+        public Color highlightColor;
+
+        public UIPositionData(Vector2 size, AnchorSpot anchorSpot, float borderSize, Color backgroundColor, Color fontColor, Color highlightColor)
         {
-            this.aPos = aPos;
+            this.bgColor = backgroundColor;
+            this.fontColor = fontColor;
+            this.highlightColor = highlightColor;
+            this.aPos = Vector2.zero;
             this.size = size;
-            this.anchorMin = anchorMin;
-            this.anchorMax = anchorMax;
-            this.pivot = pivot;
+            borderSize *= 0.01f;
+            this.anchorSpot = anchorSpot;
+            switch(anchorSpot)
+            {
+                case AnchorSpot.topLeft:
+                    this.anchorMin = new Vector2(0,1);
+                    this.anchorMax = new Vector2(0,1);
+                    this.pivot = new Vector2(0-borderSize, 1+borderSize);
+                    break;
+                case AnchorSpot.topRight:
+                    this.anchorMin = new Vector2(1,1);
+                    this.anchorMax = new Vector2(1,1);
+                    this.pivot = new Vector2(1+borderSize,1+borderSize);
+                    break;
+                case AnchorSpot.bottomLeft:
+                    this.anchorMin = new Vector2(0,0);
+                    this.anchorMax = new Vector2(0,0);
+                    this.pivot = new Vector2(0-borderSize,0-borderSize);
+                    break;
+                case AnchorSpot.bottomRight:
+                    this.anchorMin = new Vector2(1,0);
+                    this.anchorMax = new Vector2(1,0);
+                    this.pivot = new Vector2(1+borderSize,0-borderSize);
+                    break;
+            }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("|UIDATA pos: {0} |\n|size: {1} |\n| borderSize: {2} |\n| bgColor {3} |\n| fontColor {4} |\n| anchorPos {5} |\n| anchorMin {6} |\n| anchorMax {7}", aPos, size, borderSize, bgColor, fontColor, anchorSpot, anchorMin, anchorMax);
+
         }
     }
 
