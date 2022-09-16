@@ -19,7 +19,6 @@ namespace EasyPZ
         public RestartType RESTART_TYPE = RestartType.Instant;
         public HUDInfoType HUD_INFO_TYPE = HUDInfoType.Default;
         public bool ALWAYS_SHOW_TRACKER = false;
-        public bool PMODE_DEFAULT_STATE = false;
 
         public GameObject rankTrackerUIElement;
 
@@ -40,6 +39,7 @@ namespace EasyPZ
             if (Input.GetKeyDown(PMODE_TOGGLE))
             {
                 PMode = !PMode;
+                GameObject.FindObjectOfType<EasyPZ>().lastPMode = PMode;
             }
 
             if (Input.GetKeyDown(RESTART_MISSION) && InLevel())
@@ -83,7 +83,7 @@ namespace EasyPZ
             bool fail = false;
 
             if (player.dead || sman.seconds > sman.timeRanks[3]) { fail=true; } //Checks if player died.
-            else if (sman.infoSent && (sman.kills > sman.killRanks[3] || sman.stylePoints > sman.styleRanks[3])) { fail = true; } //checks if you failed p req at the end of the level.
+            else if (sman.infoSent && (sman.kills < sman.killRanks[3] || sman.stylePoints < sman.styleRanks[3])) { fail = true; } //checks if you failed p req at the end of the level.
 
             if(fail) { FailPRank(); }
         }
@@ -146,7 +146,7 @@ namespace EasyPZ
                         }
                         break;
                     case HUDInfoType.Simple:
-                        if (om.paused)
+                        if (om.paused || ALWAYS_SHOW_TRACKER)
                         {
                             trackerVisible = true;
                             if (PMode) //Sets color of indicator

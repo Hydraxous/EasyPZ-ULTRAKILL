@@ -11,6 +11,8 @@ namespace EasyPZ
     [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "1.9.0")]
     public class EasyPZ : BaseUnityPlugin
     {
+        public bool lastPMode;
+
         private ConfigEntry<KeyCode> PMODE_TOGGLE;
         private ConfigEntry<KeyCode> RESTART_MISSION;
         private ConfigEntry<EasyPZUIPatch.RestartType> RESTART_TYPE;
@@ -18,10 +20,20 @@ namespace EasyPZ
         private ConfigEntry<bool> PMODE_DEFAULT_STATE;
         private ConfigEntry<bool> ALWAYS_SHOW_TRACKER;
 
+
+        //Ui optionn
+        private ConfigEntry<UIPositionData.AnchorSpot> TRACKER_ANCHOR_POSITION;
+        private ConfigEntry<float> TRACKER_BORDER_SIZE;
+        private ConfigEntry<Color> TRACKER_BACKGROUND_COLOR;
+        private ConfigEntry<Color> TRACKER_FONT_COLOR;
+        private ConfigEntry<Color> TRACKER_HIGHLIGHT_COLOR;
+
+
         public EasyPZUIPatch ezPzPatch;
 
         private void Awake()
         {
+            BindConfig();
             if (!RegisterAssets())
             {
                 Logger.LogInfo("EasyPZ Failed to load assets. Mod is disabled.");
@@ -45,6 +57,7 @@ namespace EasyPZ
 
         private bool InLevel()
         {
+            
             string sceneName = SceneManager.GetActiveScene().name;
             if (sceneName == "Intro" || sceneName == "Main Menu" || sceneName == "Cybergrind" || sceneName == "Sandbox")
             {
@@ -57,7 +70,10 @@ namespace EasyPZ
         //Checks if patch has been applied. if not, applies it.
         private void CheckPatch()
         {
-            if (ezPzPatch != null || !InLevel()) {return;}
+            if (ezPzPatch != null || !InLevel())
+            {
+                return;
+            }
 
             CanvasController canvas = MonoSingleton<CanvasController>.Instance;
 
@@ -69,7 +85,7 @@ namespace EasyPZ
                 ezPzPatch.RESTART_TYPE = RESTART_TYPE.Value;
                 ezPzPatch.HUD_INFO_TYPE = HUD_INFO_TYPE.Value;
                 ezPzPatch.ALWAYS_SHOW_TRACKER = ALWAYS_SHOW_TRACKER.Value;
-                ezPzPatch.PMODE_DEFAULT_STATE = PMODE_DEFAULT_STATE.Value;
+                ezPzPatch.PMode = lastPMode;
             }
 
         }
@@ -78,10 +94,10 @@ namespace EasyPZ
         private bool RegisterAssets()
         {
             new HydraLoader.CustomAsset("PStatusIndicatorMini", new Component[] { new UIAutoPositioner() });
-            HydraLoader.uIDataRegistry.Add("PStatusIndicatorMini", new UIPositionData(Vector2.zero, new Vector2(100, 100), Vector2.one, Vector2.one, Vector2.one));
+            new HydraLoader.CustomAssetData("PStatusIndicatorMini_UIPD", new UIPositionData(new Vector2(85f, 85f),TRACKER_ANCHOR_POSITION.Value, TRACKER_BORDER_SIZE.Value, TRACKER_BACKGROUND_COLOR.Value, TRACKER_FONT_COLOR.Value, TRACKER_HIGHLIGHT_COLOR.Value));
 
             new HydraLoader.CustomAsset("RankGoalIndicator", new Component[] { new UIAutoPositioner(), new RankGoalIndicator() });
-            HydraLoader.uIDataRegistry.Add("RankGoalIndicator", new UIPositionData(new Vector2(-10, 10), new Vector2(165f, 202.5f), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0)));
+            new HydraLoader.CustomAssetData("RankGoalIndicator_UIPD", new UIPositionData(new Vector2(170f, 202.5f), TRACKER_ANCHOR_POSITION.Value, TRACKER_BORDER_SIZE.Value, TRACKER_BACKGROUND_COLOR.Value, TRACKER_FONT_COLOR.Value, TRACKER_HIGHLIGHT_COLOR.Value));
 
             return HydraLoader.RegisterAll();
         }
@@ -95,6 +111,14 @@ namespace EasyPZ
             HUD_INFO_TYPE = Config.Bind("General", "HUD_INFO_TYPE", EasyPZUIPatch.HUDInfoType.Default, "Changes hud type. Simple is a tiny P icon in corner when game is paused. Default is the goal UI on the left hand side when stats are turned on.");
             PMODE_DEFAULT_STATE = Config.Bind("General", "PMODE_DEFAULT_STATE", false, "Sets whether P-Mode should be enabled by default.");
             ALWAYS_SHOW_TRACKER = Config.Bind("General", "ALWAYS_SHOW_TRACKER", false, "Shows tracker when stats are not open in level.");
+            lastPMode = PMODE_DEFAULT_STATE.Value;
+
+            //UI OPTIONS
+            TRACKER_ANCHOR_POSITION = Config.Bind("Tracker Settings", "TRACKER_ANCHOR_POSITION", UIPositionData.AnchorSpot.bottomRight, "Changes anchored position of the tracker.");
+            TRACKER_BORDER_SIZE = Config.Bind("Tracker Settings", "TRACKER_BORDER_SIZE", 5.0f, "Changes how far from the edge of the screen the tracker is.");
+            TRACKER_BACKGROUND_COLOR = Config.Bind("Tracker Settings", "TRACKER_BACKGROUND_COLOR", new Color(0,0,0,69.0f), "Changes background color of the tracker, the color format is RGBA to Hex here is a helpful tool https://rgbacolorpicker.com/rgba-to-hex the last hex value is transparency. 00 is transparent, FF is opaque");
+            TRACKER_FONT_COLOR = Config.Bind("Tracker Settings", "TRACKER_FONT_COLOR", new Color(255,255,255,210.0f), "Changes font color");
+            TRACKER_HIGHLIGHT_COLOR = Config.Bind("Tracker Settings", "TRACKER_HIGHLIGHT_COLOR", new Color(255,20,63,255f), "Changes the color of the highlighted text.");
         }
     }
 }
