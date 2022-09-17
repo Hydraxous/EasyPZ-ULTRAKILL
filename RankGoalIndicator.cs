@@ -90,7 +90,7 @@ namespace EasyPZ
         public void UpdateDisplay()
         {
             GetCurrentEnemyCount();
-            float seconds = sman.timeRanks[3] - sman.seconds;
+            float seconds = Mathf.Clamp(sman.timeRanks[3] - sman.seconds, 0.0f, Mathf.Infinity);
             float minutes = 0f;
             while (seconds >= 60f)
             {
