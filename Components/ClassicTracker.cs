@@ -20,7 +20,6 @@ namespace EasyPZ.Components
 
         [SerializeField] private RectTransform trackerRoot;
 
-        private int lastEnemyCount = 0;
 
         [Configgable("Customization/Classic Tracker", "X Position")]
         private static ConfigInputField<float> trackerXPosition = new ConfigInputField<float>(540);
@@ -31,8 +30,8 @@ namespace EasyPZ.Components
         [Configgable("Customization/Classic Tracker", "Background Color")]
         private static ConfigColor backgroundColor = new ConfigColor(new Color(0, 0, 0, 0.35f));
 
-        [Configgable("Customization/Classic Tracker", "Primary Color")]
-        private static ConfigColor primaryColor = new ConfigColor(new Color(1, 1, 1, 1f));
+        [Configgable("Customization/Classic Tracker", "Text Color")]
+        private static ConfigColor textColor = new ConfigColor(new Color(1, 1, 1, 1f));
 
         [Configgable("Customization/Classic Tracker", "Complete Icon Color")]
         private static ConfigColor completeColor = new ConfigColor(new Color(1, 0, 0, 1f));
@@ -42,6 +41,9 @@ namespace EasyPZ.Components
 
         [Configgable("Customization/Classic Tracker", "Display Speed")]
         private static ConfigToggle showSpeed = new ConfigToggle(true);
+
+        [Configgable("Customization/Classic Tracker", "Display Reset Status")]
+        private static ConfigToggle showResetStatus = new ConfigToggle(true);
 
         [Configgable("Customization/Classic Tracker", "Icon Completion Colors")]
         private static ConfigToggle iconCompletionColors = new ConfigToggle(true);
@@ -63,12 +65,12 @@ namespace EasyPZ.Components
             trackerXPosition.OnValueChanged += SetXPos;
             trackerYPosition.OnValueChanged += SetYPos;
             backgroundColor.OnValueChanged += SetBackgroundColor;
-            primaryColor.OnValueChanged += SetTextColor;
+            textColor.OnValueChanged += SetTextColor;
 
             SetYPos(trackerYPosition.Value);
             SetXPos(trackerXPosition.Value);
             SetBackgroundColor(backgroundColor.Value);
-            SetTextColor(primaryColor.Value);
+            SetTextColor(textColor.Value);
         }
 
         private void SetBackgroundColor(Color color)
@@ -157,10 +159,12 @@ namespace EasyPZ.Components
 
         private void UpdatePMode()
         {
+            bool enabled = showResetStatus.Value;
+
             bool autoReset = TrackerManager.AutoRestartEnabled;
             string htmlColor = (autoReset) ? ColorUtility.ToHtmlStringRGB(completeColor.Value) : ColorUtility.ToHtmlStringRGB(incompleteColor.Value);
-            pModeStatusPrefix.text = $"<color=#{ColorUtility.ToHtmlStringRGB(textHighlightColor)}>RESET</color>:";
-            pModeStatusText.text = TrackerManager.AutoRestartEnabled ? "ON" : "OFF";
+            pModeStatusPrefix.text = (!enabled) ? "" : $"<color=#{ColorUtility.ToHtmlStringRGB(textHighlightColor)}>RESET</color>:";
+            pModeStatusText.text = (!enabled) ? "" : TrackerManager.AutoRestartEnabled ? "ON" : "OFF";
         }
 
 
@@ -205,7 +209,7 @@ namespace EasyPZ.Components
             trackerXPosition.OnValueChanged -= SetXPos;
             trackerYPosition.OnValueChanged -= SetYPos;
             backgroundColor.OnValueChanged -= SetBackgroundColor;
-            primaryColor.OnValueChanged -= SetTextColor;
+            textColor.OnValueChanged -= SetTextColor;
         }
     }
 }

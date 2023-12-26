@@ -111,7 +111,7 @@ namespace EasyPZ
             }
         }
 
-        [Configgable("Options/Advanced", "Force Tracker In All Scenes")]
+        [Configgable("Config/Advanced", "Force Tracker In All Scenes")]
         private static ConfigToggle CFG_ForceInLevelCheckTrue = new ConfigToggle(false);
 
         /// <summary>

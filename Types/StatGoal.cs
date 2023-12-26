@@ -7,6 +7,7 @@ namespace EasyPZ
     [Serializable]
     public struct StatGoal
     {
+        public int Difficulty;
         public int Kills;
         public float Seconds;
         public int Deaths;

@@ -36,6 +36,7 @@ namespace EasyPZ
             configBuilder.Build();
 
             InGameCheck.Init();
+            GhostManager.PreloadGhostPrefab();
 
             Logger.LogInfo("EasyPZ Loaded. Good luck on P-ing in all the levels! :D");
         }
