@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace EasyPZ
+namespace EasyPZ.Components
 {
     public abstract class LevelSessionBehaviour : MonoBehaviour
     {

@@ -1,4 +1,5 @@
 ﻿using Configgy;
+using EasyPZ.UIEdit;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,26 +19,27 @@ namespace EasyPZ.Components
         [SerializeField] private Image background;
 
         [SerializeField] private RectTransform trackerRoot;
+        [SerializeField] private MovableWindow movableWindow;
 
-        [Configgable("Customization/Compact Tracker", "X Position")]
+        [Configgable("Tracker/Compact Tracker", "X Position")]
         private static ConfigInputField<float> trackerXPosition = new ConfigInputField<float>(0);
 
-        [Configgable("Customization/Compact Tracker", "Y Position")]
+        [Configgable("Tracker/Compact Tracker", "Y Position")]
         private static ConfigInputField<float> trackerYPosition = new ConfigInputField<float>(-270);
 
-        [Configgable("Customization/Compact Tracker", "Background Color")]
+        [Configgable("Tracker/Compact Tracker", "Background Color")]
         private static ConfigColor backgroundColor = new ConfigColor(new Color(0, 0, 0, 0.70f));
 
-        [Configgable("Customization/Compact Tracker", "Text Color")]
+        [Configgable("Tracker/Compact Tracker", "Text Color")]
         private static ConfigColor textColor = new ConfigColor(new Color(1, 1, 1, 1f));
 
-        [Configgable("Customization/Compact Tracker", "Alt Color")]
+        [Configgable("Tracker/Compact Tracker", "Alt Color")]
         private static ConfigColor altColor = new ConfigColor(new Color(1, 1, 1, 1));
 
-        [Configgable("Customization/Compact Tracker", "Display Reset Status")]
+        [Configgable("Tracker/Compact Tracker", "Display Reset Status")]
         private static ConfigToggle showResetStatus = new ConfigToggle(true);
 
-        [Configgable("Customization/Compact Tracker", "Text Highlight Color")]
+        [Configgable("Tracker/Compact Tracker", "Text Highlight Color")]
         private static Color highlightColor = new Color(255, 0, 0, 255);
 
         private StatsManager statsManager;
@@ -46,6 +48,10 @@ namespace EasyPZ.Components
         private void Start()
         {
             statsManager = StatsManager.Instance;
+
+            movableWindow.enabled = false;
+            background.raycastTarget = false;
+
             LoadCustomization();
         }
 
@@ -107,17 +113,16 @@ namespace EasyPZ.Components
             int enemyCount = EnemyTracker.Instance.GetCurrentEnemies().Count;
             int neededKills = Mathf.Max(goal.Kills - statsManager.kills, 0);
 
+            dynamicKillsText.gameObject.SetActive(enemyCount > 0);
+
             if (enemyCount > 0)
             {
                 string htmlHighlightColor = GetTextHighlightHtml();
-                dynamicKillsText.text = $"[<color=#{htmlHighlightColor}><b>{enemyCount}</b></color>] {neededKills}";
-                dynamicKillsText.gameObject.SetActive(true);
+                dynamicKillsText.text = $"[<color=#{htmlHighlightColor}><b>{enemyCount}</b></color>]";
             }
-            else
-            {
-                dynamicKillsText.gameObject.SetActive(false);
-                killsText.text = neededKills.ToString();
-            }
+
+            killsText.text = neededKills.ToString();
+
 
         }
 
@@ -134,7 +139,7 @@ namespace EasyPZ.Components
         private void UpdatePMode()
         {
             bool enabled = showResetStatus.Value;
-            bool autoReset = TrackerManager.AutoRestartEnabled;
+            bool autoReset = TrackerManager.AutoRestartEnabled.Value;
 
             foreach (Image divider in dividers)
             {
@@ -163,12 +168,17 @@ namespace EasyPZ.Components
 
         public void StartEditMode()
         {
-            Debug.Log("Start edit mode");
+            movableWindow.enabled = true;
+            background.raycastTarget = true;
         }
 
         public void EndEditMode()
         {
-            Debug.Log("End edit mode");
+            background.raycastTarget = false;
+            movableWindow.enabled = false;
+            Vector2 position = trackerRoot.anchoredPosition;
+            trackerXPosition.SetValue(position.x);
+            trackerYPosition.SetValue(position.y);
         }
 
         public void SetStatGoal(StatGoal goal)

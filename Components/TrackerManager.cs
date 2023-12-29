@@ -1,4 +1,5 @@
 ﻿using Configgy;
+using Configgy.UI;
 using Steamworks;
 using Steamworks.Data;
 using System;
@@ -14,20 +15,29 @@ namespace EasyPZ.Components
 {
     public class TrackerManager : MonoBehaviour
     {
-        [Configgable("Config", "Tracker Type")]
+        [Configgable("Binds", "Auto Restart Toggle")]
+        private static ConfigKeybind Key_PModeToggle = new ConfigKeybind(KeyCode.P);
+
+        [Configgable("Binds", "Restart Mission")]
+        private static ConfigKeybind Key_RestartMission = new ConfigKeybind(KeyCode.RightAlt);
+
+        [Configgable("Tracker", "Tracker Type")]
         private static ConfigDropdown<TrackerType> CFG_trackerType = new ConfigDropdown<TrackerType>((TrackerType[])Enum.GetValues(typeof(TrackerType)), ((TrackerType[])Enum.GetValues(typeof(TrackerType))).Select(x => x.ToString()).ToArray(), 1);
 
-        [Configgable("Config", "Always Show Tracker")]
+        [Configgable("Tracker", "Always Show Tracker")]
         private static ConfigToggle CFG_AlwaysShowTracker = new ConfigToggle(true);
 
-        [Configgable("Config", "Enable Auto Restart By Default")]
-        private static ConfigToggle CFG_AutoResetDefault = new ConfigToggle(true);
+        [Configgable("Auto Restart", "Only AutoRestart At Level End")]
+        private static ConfigToggle CFG_AutoRestartAtLevelEnd = new ConfigToggle(false);
 
-        [Configgable("Config/Goal", "Use P-Rank Time as PB Goal")]
+        [Configgable("Auto Restart", "Enable Auto Restart")]
+        public static ConfigToggle AutoRestartEnabled = new ConfigToggle(false);
+
+        [Configgable("Tracker/Goal", "Use P-Rank Time as PB Goal")]
         private static ConfigToggle CFG_UsePRankForLeaderboardGoals = new ConfigToggle(false);
 
-        [Configgable("Config/Goal", "Goal Mode")]
-        private static ConfigDropdown<GoalMode> CFG_GoalMode = new ConfigDropdown<GoalMode>((GoalMode[])Enum.GetValues(typeof(GoalMode)), GoalModeDescriptions, 0);
+        [Configgable("Tracker/Goal", "Goal Mode")]
+        private static ConfigDropdown<GoalMode> CFG_GoalMode = new ConfigDropdown<GoalMode>((GoalMode[])Enum.GetValues(typeof(GoalMode)), names:GoalModeDescriptions, 0);
         
         private static readonly string[] GoalModeDescriptions = new string[]
         {
@@ -40,16 +50,16 @@ namespace EasyPZ.Components
 
         #region CFG_CustomGoal
 
-        [Configgable("Config/Goal/Custom Goal", "Kills")]
+        [Configgable("Tracker/Goal/Custom Goal", "Kills")]
         private static ConfigInputField<int> CFG_CustomGoalKills = new ConfigInputField<int>(0);
 
-        [Configgable("Config/Goal/Custom Goal", "Seconds")]
+        [Configgable("Tracker/Goal/Custom Goal", "Seconds")]
         private static ConfigInputField<float> CFG_CustomGoalSeconds = new ConfigInputField<float>(120f);
 
-        [Configgable("Config/Goal/Custom Goal", "Deaths")]
+        [Configgable("Tracker/Goal/Custom Goal", "Deaths")]
         private static ConfigInputField<int> CFG_CustomGoalDeaths = new ConfigInputField<int>(0);
 
-        [Configgable("Config/Goal/Custom Goal", "Style")]
+        [Configgable("Tracker/Goal/Custom Goal", "Style")]
         private static ConfigInputField<int> CFG_CustomGoalStyle = new ConfigInputField<int>(2000);
         #endregion
 
@@ -62,9 +72,9 @@ namespace EasyPZ.Components
         private LevelStats levelStats;
 
         private bool editMode;
-        public static bool AutoRestartEnabled;
 
         private StatGoal currentStatGoal;
+
 
         private void Awake()
         {
@@ -78,14 +88,13 @@ namespace EasyPZ.Components
         private void Start()
         {
             CFG_trackerType.OnValueChanged += InstanceTracker;
-            CFG_UsePRankForLeaderboardGoals.OnValueChanged += (v) => InitializeGoal();
-            CFG_GoalMode.OnValueChanged += (v) => InitializeGoal();
+            CFG_UsePRankForLeaderboardGoals.OnValueChanged += ReinitGoal<bool>;
+            CFG_GoalMode.OnValueChanged += ReinitGoal<GoalMode>;
 
-            CFG_CustomGoalDeaths.OnValueChanged += (v) => InitializeGoal();
-            CFG_CustomGoalKills.OnValueChanged += (v) => InitializeGoal();
-            CFG_CustomGoalStyle.OnValueChanged += (v) => InitializeGoal();
-            CFG_CustomGoalSeconds.OnValueChanged += (v) => InitializeGoal();
-
+            CFG_CustomGoalDeaths.OnValueChanged += ReinitGoal<int>;
+            CFG_CustomGoalKills.OnValueChanged += ReinitGoal<int>;
+            CFG_CustomGoalStyle.OnValueChanged += ReinitGoal<int>;
+            CFG_CustomGoalSeconds.OnValueChanged += ReinitGoal<float>;
 
             if (InGameCheck.InLevel())
             {
@@ -93,10 +102,18 @@ namespace EasyPZ.Components
                 InstanceTracker(CFG_trackerType.Value);
                 gameObject.AddComponent<SessionRecorder>();
                 gameObject.AddComponent<GhostManager>();
+                gameObject.AddComponent<SpeedLimiter>();
             }
+        }
 
-            if (CFG_AutoResetDefault.Value)
-                AutoRestartEnabled = true;
+        private void Key_RestartMission_OnRebindStart()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void ReinitGoal<T>(T v)
+        {
+            InitializeGoal();
         }
 
         private void InitializeGoal()
@@ -176,25 +193,27 @@ namespace EasyPZ.Components
                     container.SetActive(true);
             }
 
-            if (EasyPZ.Key_PModeToggle.WasPerformedThisFrame)
+            if (Key_PModeToggle.WasPeformed())
             {
-                AutoRestartEnabled = !AutoRestartEnabled;
+                AutoRestartEnabled.SetValue(!AutoRestartEnabled.Value);
             }
 
-            if (EasyPZ.Key_RestartMission.WasPerformedThisFrame)
+            if (Key_RestartMission.WasPeformed())
             {
-                OptionsManager.Instance.RestartMission();
+                Restarter.Restart();
             }
 
-            if (AutoRestartEnabled)
+            if (AutoRestartEnabled.Value)
             {
                 if (currentStatGoal.NotEmpty())
-                    if (currentStatGoal.IsFailed())
-                        OptionsManager.Instance.RestartMission();
+                    if (StatsManager.Instance.infoSent || !CFG_AutoRestartAtLevelEnd.Value)
+                        if (currentStatGoal.IsFailed())
+                            Restarter.Restart();
             }
         }
 
-        //[Configgable("Options", "Open Tracker Editor")]
+
+        [Configgable("Tracker/Customization", "Reposition Tracker")]
         private static void EnterEditMode()
         {
             if (instance == null)
@@ -206,6 +225,19 @@ namespace EasyPZ.Components
 
         private void EnterEditModeInternal()
         {
+            ConfigurationMenu.Close();
+
+            GameState configState = new GameState("edit_ezpz_tracker", blocker.gameObject);
+
+            configState.cursorLock = LockMode.Unlock;
+            configState.playerInputLock = LockMode.Lock;
+            configState.cameraInputLock = LockMode.Lock;
+            configState.priority = 20;
+
+            OptionsManager.Instance.paused = true;
+            Time.timeScale = 0f;
+            GameStateManager.Instance.RegisterState(configState);
+
             editMode = true;
             blocker.gameObject.SetActive(true);
             container.SetActive(true);
@@ -218,6 +250,10 @@ namespace EasyPZ.Components
 
         private void EndEditMode()
         {
+            GameStateManager.Instance.PopState("edit_ezpz_tracker");
+            OptionsManager.Instance.paused = false;
+            Time.timeScale = 1f;
+
             if (tracker.TryGetComponent(out IUIEditable editable))
             {
                 editable.EndEditMode();
@@ -225,6 +261,8 @@ namespace EasyPZ.Components
 
             blocker.gameObject.SetActive(false);
             editMode = false;
+
+            ConfigurationMenu.Open();
         }
 
         private StatGoal GetCurrentGoal()
@@ -248,20 +286,21 @@ namespace EasyPZ.Components
 
         private void SetGoalToPBGoal()
         {
-            if (retrievingScores)
-                return;
-
             try
             {
-                StartCoroutine(RetrieveLevelScores());
+                Debug.Log("Entered try catch");
+                StartCoroutine(RetrieveLevelScores((r, l) =>
+                {
+                    if(r)
+                        OnLevelScoresReceived(l);
+                    else
+                        Debug.LogError("Failed to retrieve leaderboard scores.");
+                }));
+
             }catch(System.Exception ex)
             {
                 Debug.LogError("Error occured while trying to fetch scores.");
                 Debug.LogException(ex);
-
-                //Retry in 1 second.
-                if (CanUseOnlineRecords())
-                    Invoke(nameof(SetGoalToPBGoal), 1f);
             }
         }
 
@@ -270,16 +309,14 @@ namespace EasyPZ.Components
             return InGameCheck.CurrentLevelType == InGameCheck.UKLevelType.Level || InGameCheck.CurrentLevelType == InGameCheck.UKLevelType.PrimeSanctum && SteamClient.IsValid;
         }
 
-        private bool retrievingScores;
 
-        private IEnumerator RetrieveLevelScores()
+        private static IEnumerator RetrieveLevelScores(Action<bool, LeaderboardEntry[]> onComplete)
         {
-            retrievingScores = true;
-
+            Debug.Log("Attempting to retrieve level scores.");
             string levelName = SceneHelper.CurrentScene;
             if(LeaderboardController.Instance == null)
             {
-                retrievingScores = false;
+                onComplete.Invoke(false, null);
                 yield break;
             }
 
@@ -287,7 +324,7 @@ namespace EasyPZ.Components
             
             if(task == null)
             {
-                retrievingScores = false;
+                onComplete.Invoke(false, null);
                 yield break;
             }
 
@@ -296,13 +333,12 @@ namespace EasyPZ.Components
 
             if (task.Result == null)
             {
-                retrievingScores = false;
                 Debug.LogError("Failed to retrieve leaderboard scores.");
+                onComplete.Invoke(false, null);
                 yield break;
             }
 
-            OnLevelScoresReceived(task.Result);
-            retrievingScores = false;
+            onComplete.Invoke(true, task.Result);
         }
 
         private void OnLevelScoresReceived(LeaderboardEntry[] scores)
@@ -377,6 +413,7 @@ namespace EasyPZ.Components
         private StatGoal GetGoalFromLeaderboard(LeaderboardEntry entry)
         {
             int score = entry.Score;
+            //Score is milliseconds
             float seconds = (float)score / 1000f;
 
             return new StatGoal()
@@ -415,13 +452,14 @@ namespace EasyPZ.Components
         private void OnDestroy()
         {
             CFG_trackerType.OnValueChanged -= InstanceTracker;
-            CFG_UsePRankForLeaderboardGoals.OnValueChanged -= (v) => InitializeGoal();
-            CFG_GoalMode.OnValueChanged -= (v) => InitializeGoal();
+            CFG_UsePRankForLeaderboardGoals.OnValueChanged -= ReinitGoal<bool>;
+            CFG_GoalMode.OnValueChanged -= ReinitGoal<GoalMode>;
 
-            CFG_CustomGoalDeaths.OnValueChanged -= (v) => InitializeGoal();
-            CFG_CustomGoalKills.OnValueChanged -= (v) => InitializeGoal();
-            CFG_CustomGoalStyle.OnValueChanged -= (v) => InitializeGoal();
-            CFG_CustomGoalSeconds.OnValueChanged -= (v) => InitializeGoal();
+            CFG_CustomGoalDeaths.OnValueChanged -= ReinitGoal<int>;
+            CFG_CustomGoalKills.OnValueChanged -= ReinitGoal<int>;
+            CFG_CustomGoalStyle.OnValueChanged -= ReinitGoal<int>;
+            CFG_CustomGoalSeconds.OnValueChanged -= ReinitGoal<float>;
+
         }
     }
 

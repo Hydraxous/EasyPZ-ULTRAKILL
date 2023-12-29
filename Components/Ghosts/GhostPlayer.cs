@@ -1,16 +1,18 @@
-﻿using System;
+﻿using Configgy;
+using Steamworks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
-namespace EasyPZ
+namespace EasyPZ.Components
 {
     public class GhostPlayer : MonoBehaviour, IDisposable
     {
         SessionRecording recording;
         private Animator animator;
-        private SkinnedMeshRenderer meshRenderer;
         private Transform[] rotationTransforms;
 
         public void SetRecording(SessionRecording recording)
@@ -23,14 +25,78 @@ namespace EasyPZ
 
         private void Awake()
         {
-            animator = GetComponentsInChildren<Animator>(true).Where(x=>x.name == "v2_combined").FirstOrDefault();
-            meshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>(true).FirstOrDefault();
+            animator = GetComponentsInChildren<Animator>(true).Where(x => x.name == "v2_combined").FirstOrDefault();
             rotationTransforms = new Transform[2];
             rotationTransforms[0] = GetComponentsInChildren<Transform>(true).Where(x => x.name == "spine.006").FirstOrDefault();
             rotationTransforms[1] = GetComponentsInChildren<Transform>(true).Where(x => x.name == "upper_arm.R").FirstOrDefault();
             TrailRenderer trailRenderer = GetComponentsInChildren<TrailRenderer>(true).FirstOrDefault();
-            if(trailRenderer != null)
+            if (trailRenderer != null)
                 trailRenderer.enabled = false;
+        }
+
+        private void Start()
+        {
+            InstanceNamePlate();
+        }
+
+        private void InstanceNamePlate()
+        {
+            if (!SteamClient.IsValid)
+                return;
+
+            string playerName = "";
+
+            try
+            {
+                playerName = new Friend(recording.Metadata.SteamID).Name;
+                Debug.Log($"Created Ghost {playerName}");
+                gameObject.name += $"({playerName})";
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+                Debug.LogError("Unable to name ghost :(");
+                return;
+            }
+
+            //Do in serialized.
+            return;
+
+            GameObject namePlateHolder = new GameObject("NamePlate");
+            namePlateHolder.transform.SetParent(transform);
+            namePlateHolder.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+            namePlateHolder.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+            namePlateHolder.transform.localScale = new Vector3(1f, 1f, 1f);
+
+            AlwaysLookAtCamera lookAtCamera = namePlateHolder.AddComponent<AlwaysLookAtCamera>();
+            lookAtCamera.useXAxis = true;
+            lookAtCamera.useYAxis = true;
+            lookAtCamera.useZAxis = true;
+
+            GameObject canvasGO = new GameObject("Canvas");
+            canvasGO.transform.SetParent(namePlateHolder.transform);
+            canvasGO.transform.localPosition = new Vector3(0f, 0f, 0f);
+            canvasGO.transform.localEulerAngles = new Vector3(0f, 180f, 0f);
+            canvasGO.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+
+            Canvas canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            GameObject textGO = new GameObject("NameText");
+            textGO.transform.SetParent(canvasGO.transform);
+            textGO.transform.localPosition = new Vector3(0f, 0f, 0f);
+            textGO.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+            textGO.transform.localScale = new Vector3(1f, 1f, 1f);
+
+            RectTransform textRt = textGO.AddComponent<RectTransform>();
+
+            Text text = textGO.AddComponent<Text>();
+            text.text = playerName;
+            //text.font = Prefabs.VCR_Font;
+            
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Color.white;
+            text.fontSize = 30;
         }
 
         private void Update()
@@ -54,22 +120,22 @@ namespace EasyPZ
             }
 
             float t = Mathf.InverseLerp(frames[0].time, frames[1].time, timeElapsed);
-            int animation = (t > 0.5f) ? frames[1].animation : frames[0].animation;
+            int animation = t > 0.5f ? frames[1].animation : frames[0].animation;
 
 
             Vector3 position = Vector3.Lerp(frames[0].position, frames[1].position, t);
-            
+
             //No idea why but v2 has a weird offset only when not sliding.
-            if(animation == 1 || animation == 0)
+            if (animation == 1 || animation == 0)
                 position += -Vector3.up * 1.15f;
-            
+
             float yRot = Mathf.LerpAngle(frames[0].rotation.y, frames[1].rotation.y, t);
             float xRot = Mathf.LerpAngle(frames[0].rotation.x, frames[1].rotation.x, t);
 
             transform.position = position;
             transform.eulerAngles = new Vector3(0f, yRot, 0);
-            
-            for(int i = 0; i < rotationTransforms.Length; i++)
+
+            for (int i = 0; i < rotationTransforms.Length; i++)
             {
                 if (rotationTransforms[i] == null)
                     continue;
@@ -80,10 +146,15 @@ namespace EasyPZ
             SetAnimation(animation);
         }
 
-        public void Play()
+        public void Play(float timeStarted)
         {
-            timeStarted = Time.time;
+            this.timeStarted = timeStarted;
             isPlaying = true;
+        }
+
+        public void SetCurrentTime(float time)
+        {
+            timeStarted = Time.time - time;
         }
 
         public void Stop()
@@ -137,5 +208,5 @@ namespace EasyPZ
         }
     }
 
-    
+
 }

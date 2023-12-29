@@ -1,4 +1,5 @@
 ﻿using Configgy;
+using EasyPZ.UIEdit;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,38 +18,40 @@ namespace EasyPZ.Components
         [SerializeField] private Image timeIcon;
         [SerializeField] private Image styleIcon;
         [SerializeField] private Image killsIcon;
+        [SerializeField] private Image background;
 
         [SerializeField] private RectTransform trackerRoot;
+        [SerializeField] private MovableWindow movableWindow;
 
 
-        [Configgable("Customization/Classic Tracker", "X Position")]
+        [Configgable("Tracker/Classic Tracker", "X Position")]
         private static ConfigInputField<float> trackerXPosition = new ConfigInputField<float>(540);
 
-        [Configgable("Customization/Classic Tracker", "Y Position")]
+        [Configgable("Tracker/Classic Tracker", "Y Position")]
         private static ConfigInputField<float> trackerYPosition = new ConfigInputField<float>(-220);
 
-        [Configgable("Customization/Classic Tracker", "Background Color")]
+        [Configgable("Tracker/Classic Tracker", "Background Color")]
         private static ConfigColor backgroundColor = new ConfigColor(new Color(0, 0, 0, 0.35f));
 
-        [Configgable("Customization/Classic Tracker", "Text Color")]
+        [Configgable("Tracker/Classic Tracker", "Text Color")]
         private static ConfigColor textColor = new ConfigColor(new Color(1, 1, 1, 1f));
 
-        [Configgable("Customization/Classic Tracker", "Complete Icon Color")]
+        [Configgable("Tracker/Classic Tracker", "Complete Icon Color")]
         private static ConfigColor completeColor = new ConfigColor(new Color(1, 0, 0, 1f));
 
-        [Configgable("Customization/Classic Tracker", "Incomplete Icon Color")]
+        [Configgable("Tracker/Classic Tracker", "Incomplete Icon Color")]
         private static ConfigColor incompleteColor = new ConfigColor(new Color(1, 1, 1, 0.3f));
 
-        [Configgable("Customization/Classic Tracker", "Display Speed")]
+        [Configgable("Tracker/Classic Tracker", "Display Speed")]
         private static ConfigToggle showSpeed = new ConfigToggle(true);
 
-        [Configgable("Customization/Classic Tracker", "Display Reset Status")]
+        [Configgable("Tracker/Classic Tracker", "Display Reset Status")]
         private static ConfigToggle showResetStatus = new ConfigToggle(true);
 
-        [Configgable("Customization/Classic Tracker", "Icon Completion Colors")]
+        [Configgable("Tracker/Classic Tracker", "Icon Completion Colors")]
         private static ConfigToggle iconCompletionColors = new ConfigToggle(true);
-
-        [Configgable("Customization/Classic Tracker", "Text Highlight Color")]
+            
+        [Configgable("Tracker/Classic Tracker", "Text Highlight Color")]
         private static Color textHighlightColor = new Color(255, 0, 0, 255);
 
         private StatsManager statsManager;
@@ -57,6 +60,10 @@ namespace EasyPZ.Components
         private void Start()
         {
             statsManager = StatsManager.Instance;
+
+            background.raycastTarget = false;
+            movableWindow.enabled = false;
+            
             LoadCustomization();
         }
 
@@ -161,10 +168,10 @@ namespace EasyPZ.Components
         {
             bool enabled = showResetStatus.Value;
 
-            bool autoReset = TrackerManager.AutoRestartEnabled;
+            bool autoReset = TrackerManager.AutoRestartEnabled.Value;
             string htmlColor = (autoReset) ? ColorUtility.ToHtmlStringRGB(completeColor.Value) : ColorUtility.ToHtmlStringRGB(incompleteColor.Value);
             pModeStatusPrefix.text = (!enabled) ? "" : $"<color=#{ColorUtility.ToHtmlStringRGB(textHighlightColor)}>RESET</color>:";
-            pModeStatusText.text = (!enabled) ? "" : TrackerManager.AutoRestartEnabled ? "ON" : "OFF";
+            pModeStatusText.text = (!enabled) ? "" : TrackerManager.AutoRestartEnabled.Value ? "ON" : "OFF";
         }
 
 
@@ -191,12 +198,17 @@ namespace EasyPZ.Components
 
         public void StartEditMode()
         {
-            Debug.Log("Start edit mode");
+            movableWindow.enabled = true;
+            background.raycastTarget = true;
         }
 
         public void EndEditMode()
         {
-            Debug.Log("End edit mode");
+            background.raycastTarget = false;
+            movableWindow.enabled = false;
+            Vector2 position = trackerRoot.anchoredPosition;
+            trackerXPosition.SetValue(position.x);
+            trackerYPosition.SetValue(position.y);
         }
 
         public void SetStatGoal(StatGoal goal)

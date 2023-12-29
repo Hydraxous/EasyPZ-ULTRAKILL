@@ -11,11 +11,17 @@ namespace EasyPZ.UIEdit
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            if (!this.enabled)
+                return;
+
             canvas = target.GetComponentInParent<Canvas>();
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            if (!this.enabled)
+                return;
+
             target.anchoredPosition += eventData.delta / canvas.scaleFactor;
         }
 

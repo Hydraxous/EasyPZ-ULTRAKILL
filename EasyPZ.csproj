@@ -107,9 +107,6 @@
 	<Reference Include="Configgy">
 		<HintPath>$(ULTRAKILLPath)\BepInEx\plugins\Configgy\Configgy.dll</HintPath>
 	</Reference>
-	<Reference Include="HydraDynamics">
-		<HintPath>$(ULTRAKILLPath)\BepInEx\plugins\HydraDynamics\HydraDynamics.dll</HintPath>
-	</Reference>
   </ItemGroup>
 
   <ItemGroup>
