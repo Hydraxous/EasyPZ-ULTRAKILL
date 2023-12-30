@@ -1,7 +1,4 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace EasyPZ.Patches
@@ -25,6 +22,8 @@ namespace EasyPZ.Patches
         private static void InstanceElements(RectTransform root)
         {
             GameObject.Instantiate(Prefabs.TrackerManager, root);
+            GameObject.Instantiate(Prefabs.RunManagerMenu, root);
+            GameObject.Instantiate(Prefabs.GhostSavedNotifier, root);
         }
     }
 }

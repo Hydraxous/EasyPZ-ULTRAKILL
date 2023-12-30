@@ -32,6 +32,8 @@ namespace EasyPZ.Components
             TrailRenderer trailRenderer = GetComponentsInChildren<TrailRenderer>(true).FirstOrDefault();
             if (trailRenderer != null)
                 trailRenderer.enabled = false;
+
+           
         }
 
         private void Start()
@@ -41,16 +43,20 @@ namespace EasyPZ.Components
 
         private void InstanceNamePlate()
         {
-            if (!SteamClient.IsValid)
-                return;
-
             string playerName = "";
-
             try
             {
-                playerName = new Friend(recording.Metadata.SteamID).Name;
-                Debug.Log($"Created Ghost {playerName}");
-                gameObject.name += $"({playerName})";
+                if (SteamClient.IsValid)
+                {
+                    playerName = new Friend(recording.Metadata.SteamID).Name;
+                    Debug.Log($"Created Ghost {playerName}");
+                    gameObject.name += $"({playerName})";
+                }
+                else
+                {
+                    throw new Exception("Steam not valid or not connected!");
+                }
+                
             }
             catch (System.Exception ex)
             {
@@ -59,44 +65,13 @@ namespace EasyPZ.Components
                 return;
             }
 
-            //Do in serialized.
-            return;
+            GameObject nameplate = GameObject.Instantiate(Prefabs.PlayerNameplate, transform);
+            nameplate.transform.localPosition = new Vector3(0f, 3.854f, 0f);
+            nameplate.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
 
-            GameObject namePlateHolder = new GameObject("NamePlate");
-            namePlateHolder.transform.SetParent(transform);
-            namePlateHolder.transform.localPosition = new Vector3(0f, 2.5f, 0f);
-            namePlateHolder.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
-            namePlateHolder.transform.localScale = new Vector3(1f, 1f, 1f);
+            Text nameText = nameplate.GetComponentInChildren<Text>();
 
-            AlwaysLookAtCamera lookAtCamera = namePlateHolder.AddComponent<AlwaysLookAtCamera>();
-            lookAtCamera.useXAxis = true;
-            lookAtCamera.useYAxis = true;
-            lookAtCamera.useZAxis = true;
-
-            GameObject canvasGO = new GameObject("Canvas");
-            canvasGO.transform.SetParent(namePlateHolder.transform);
-            canvasGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-            canvasGO.transform.localEulerAngles = new Vector3(0f, 180f, 0f);
-            canvasGO.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
-
-            Canvas canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-
-            GameObject textGO = new GameObject("NameText");
-            textGO.transform.SetParent(canvasGO.transform);
-            textGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-            textGO.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
-            textGO.transform.localScale = new Vector3(1f, 1f, 1f);
-
-            RectTransform textRt = textGO.AddComponent<RectTransform>();
-
-            Text text = textGO.AddComponent<Text>();
-            text.text = playerName;
-            //text.font = Prefabs.VCR_Font;
-            
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
-            text.fontSize = 30;
+            nameText.text = playerName;
         }
 
         private void Update()

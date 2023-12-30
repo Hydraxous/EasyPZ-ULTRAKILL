@@ -18,7 +18,7 @@ namespace EasyPZ.Components
         private static ConfigToggle ghostsEnabled = new ConfigToggle(true);
 
         [Configgable("Ghosts/Playback", "Ghost Opacity")]
-        private static FloatSlider ghostOpacity = new FloatSlider(0f, 0f, 1f);
+        private static FloatSlider ghostOpacity = new FloatSlider(1f, 0f, 1f);
 
         private static GameObject GhostPlayerPrefab
         {
@@ -41,9 +41,45 @@ namespace EasyPZ.Components
         private bool spawnedGhosts => ghostPlayers != null;
         private float timeStarted;
 
+        private static GhostManager instance;
+        private static Dictionary<string, bool> enabledGhosts = new Dictionary<string, bool>();
+
+        private void Awake()
+        {
+            instance = this;
+        }
+
+        public static bool IsGhostEnabled(string id)
+        {
+            if (!enabledGhosts.ContainsKey(id))
+            {
+                enabledGhosts.Add(id, true);
+                return true;
+            }
+
+            return enabledGhosts[id];
+        }
+
+        public static void SetGhostEnabled(string id, bool enabled)
+        {
+            if (!enabledGhosts.ContainsKey(id))
+            {
+                enabledGhosts.Add(id, enabled);
+                return;
+            }
+
+            enabledGhosts[id] = enabled;
+
+            if(instance != null)
+            {
+                instance.ResetGhosts();
+            }
+        }
+
 
         protected override void OnSessionUpdate()
         {
+
         }
 
         public static void PreloadGhostPrefab()
@@ -79,8 +115,9 @@ namespace EasyPZ.Components
                 try
                 {
                     SessionRecording recording = SessionRecording.LoadFromBytes(File.ReadAllBytes(x.FullName));
+                    recording.Metadata.LocatedFilePath = x.FullName;
                     Debug.Log($"Loaded recording {x.Name} with {recording.frames.Count} frames");
-                    recordings.Add(SessionRecording.LoadFromBytes(File.ReadAllBytes(x.FullName)));
+                    recordings.Add(recording);
                 }
                 catch (Exception e)
                 {
@@ -132,6 +169,11 @@ namespace EasyPZ.Components
 
         private void OnMaxGhostsChanged(int maxGhosts)
         {
+            ResetGhosts();
+        }
+
+        private void ResetGhosts()
+        {
             if (!spawnedGhosts || !ghostsEnabled.Value)
                 return;
 
@@ -146,17 +188,25 @@ namespace EasyPZ.Components
             if (loadedRecordings == null)
                 LoadRecordings();
 
+            IEnumerable<SessionRecording> recordingsToSpawn = loadedRecordings.Where(x => enabledGhosts.ContainsKey(x.Metadata.LocatedFilePath) && enabledGhosts[x.Metadata.LocatedFilePath]).OrderBy(x => x.GetTotalTime());
+            int takeCount = Mathf.Min(maxGhosts.Value, recordingsToSpawn.Count());
+            
             //Sort by lowest time
-            foreach (var x in loadedRecordings.OrderBy(x => x.GetTotalTime()).Take(maxGhosts.Value))
+            foreach (var x in recordingsToSpawn.Take(takeCount))
             {
-                GameObject go = Instantiate(GhostPlayerPrefab);
-                go.SetActive(true);
-
-                GhostPlayer player = go.AddComponent<GhostPlayer>();
-
-                player.SetRecording(x);
-                ghostPlayers.Add(player);
+                SpawnGhost(x);
             }
+        }
+
+        private void SpawnGhost(SessionRecording recording)
+        {
+            GameObject go = Instantiate(GhostPlayerPrefab);
+            go.SetActive(true);
+
+            GhostPlayer player = go.AddComponent<GhostPlayer>();
+
+            player.SetRecording(recording);
+            ghostPlayers.Add(player);
         }
 
         private void DisposeGhosts()

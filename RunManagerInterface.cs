@@ -327,101 +327,155 @@ namespace EasyPZ
                         });
                     });
 
+                    bool spawnToggles = levelRuns.Key == SceneHelper.CurrentScene;
+
                     //Order each run by date created.
                     foreach (SessionRecordingMetadata metadata in levelRuns.Value.OrderByDescending(x=>x.DateCreated.Ticks))
                     {
-                        DynUI.Button(runList, (b) =>
+                        List<Toggle> soloToggles = new List<Toggle>();
+
+                        DynUI.Div(runList, (listElement) =>
                         {
-                            RectTransform buttonRect = b.GetComponent<RectTransform>();
-                            buttonRect.sizeDelta = new Vector2(buttonRect.sizeDelta.x, 35f);
-                            Text buttonText = b.GetComponentInChildren<Text>();
+                            listElement.sizeDelta = new Vector2(listElement.sizeDelta.x, 35f);
 
-                            buttonText.text = $"{metadata.Title} | {metadata.GetTimeString()} | {metadata.GetFileName()}";
+                            HorizontalLayoutGroup hlg = listElement.gameObject.AddComponent<HorizontalLayoutGroup>();
+                            hlg.childForceExpandWidth = false;
+                            hlg.childForceExpandHeight = true;
+                            hlg.childControlHeight = true;
+                            hlg.childControlWidth = false;
+                            hlg.childAlignment = TextAnchor.MiddleCenter;
 
-                            b.onClick.AddListener(() =>
+                            if (spawnToggles)
                             {
-                                runList.gameObject.SetActive(false);
-                                runEditMenu.gameObject.SetActive(true);
-
-                                bool editable = (metadata.SteamID == SteamClient.SteamId.Value);
-                                bool isDirty = false;
-
-                                runEditTitle.SetTextWithoutNotify(metadata.Title);
-                                runEditTitle.interactable = editable;
-
-                                string updatedTitle = metadata.Title;
-                                runEditTitle.onEndEdit.RemoveAllListeners();
-                                if (editable)
+                                DynUI.Toggle(listElement, (toggle) =>
                                 {
-                                    runEditTitle.onEndEdit.AddListener((v) =>
+                                    RectTransform rt = toggle.GetComponent<RectTransform>();
+                                    rt.sizeDelta = new Vector2(35f, 35f);
+                                    soloToggles.Add(toggle);
+
+                                    toggle.onValueChanged.AddListener((state) =>
                                     {
-                                        updatedTitle = v;
-                                        isDirty = true;
-                                    });
-                                }
-
-                                runEditDescription.SetTextWithoutNotify(metadata.Description);
-                                runEditDescription.interactable = editable;
-
-                                string updatedDesc = metadata.Description;
-                                runEditDescription.onEndEdit.RemoveAllListeners();
-                                if (editable)
-                                {
-                                    runEditDescription.onEndEdit.AddListener((v) =>
-                                    {
-                                        updatedDesc = v;
-                                        isDirty = true;
-                                    });
-                                }
-
-                                runEditLevelName.text = metadata.LevelName;
-                                runEditDate.text = metadata.DateCreated.ToString("MM/dd/yyyy hh:mm:ss");
-
-                                Friend f = new Friend(metadata.SteamID);
-                                runEditRunnerName.text = f.Name;
-
-                                backButton.onClick.RemoveAllListeners();
-                                backButton.onClick.AddListener(() =>
-                                {
-                                    runEditMenu.gameObject.SetActive(false);
-                                    runList.gameObject.SetActive(true);
-                                });
-
-                                saveButton.onClick.RemoveAllListeners();
-                                if (editable)
-                                {
-                                    saveButton.onClick.AddListener(() =>
-                                    {
-                                        if (isDirty)
+                                        if (state)
                                         {
-                                            isDirty = false;
-                                            metadata.Title = updatedTitle;
-                                            metadata.Description = updatedDesc;
-                                            GhostFileManager.UpdateMetadata(metadata);
+                                            foreach (Toggle t in soloToggles)
+                                            {
+                                                if (t == toggle)
+                                                    continue;
+
+                                                t.SetIsOnWithoutNotify(false);
+                                            }
+
+                                            GhostManager gm = GameObject.FindObjectOfType<GhostManager>();
+                                            if(gm != null)
+                                            {
+
+                                            }
                                         }
                                     });
-                                }
-
-                                deleteButton.onClick.RemoveAllListeners();
-                                deleteButton.onClick.AddListener(() =>
-                                {
-                                    GhostFileManager.DeleteRun(metadata);
-                                    runList.gameObject.SetActive(true);
-                                    runEditMenu.gameObject.SetActive(false);
-
-                                    metadatas.Remove(metadata);
-                                    //Remove the button.
-                                    GameObject.Destroy(b.gameObject);
-
-                                    Canvas.ForceUpdateCanvases();
                                 });
+                            }
+                            
 
-                                runTime.text = $"TIME: {metadata.GetTimeString()}";
-                                runStyle.text = $"STYLE: {metadata.StatGoal.Style}";
-                                runKills.text = $"KILLS: {metadata.StatGoal.Kills}";
-                                runDeaths.text = $"DEATHS: {metadata.StatGoal.Deaths}";
+                            DynUI.Button(listElement, (b) =>
+                            {
+                                RectTransform buttonRect = b.GetComponent<RectTransform>();
+
+                                float size = listElement.sizeDelta.x;
+                                if (spawnToggles)
+                                    size -= 40f;
+                                buttonRect.sizeDelta = new Vector2(size, 35f);
+                                Text buttonText = b.GetComponentInChildren<Text>();
+
+                                buttonText.text = $"{metadata.Title} | {metadata.GetTimeString()} | {metadata.GetFileName()}";
+
+                                b.onClick.AddListener(() =>
+                                {
+                                    runList.gameObject.SetActive(false);
+                                    runEditMenu.gameObject.SetActive(true);
+
+                                    bool editable = (metadata.SteamID == SteamClient.SteamId.Value);
+                                    bool isDirty = false;
+
+                                    runEditTitle.SetTextWithoutNotify(metadata.Title);
+                                    runEditTitle.interactable = editable;
+
+                                    string updatedTitle = metadata.Title;
+                                    runEditTitle.onEndEdit.RemoveAllListeners();
+                                    if (editable)
+                                    {
+                                        runEditTitle.onEndEdit.AddListener((v) =>
+                                        {
+                                            updatedTitle = v;
+                                            isDirty = true;
+                                        });
+                                    }
+
+                                    runEditDescription.SetTextWithoutNotify(metadata.Description);
+                                    runEditDescription.interactable = editable;
+
+                                    string updatedDesc = metadata.Description;
+                                    runEditDescription.onEndEdit.RemoveAllListeners();
+                                    if (editable)
+                                    {
+                                        runEditDescription.onEndEdit.AddListener((v) =>
+                                        {
+                                            updatedDesc = v;
+                                            isDirty = true;
+                                        });
+                                    }
+
+                                    runEditLevelName.text = metadata.LevelName;
+                                    runEditDate.text = metadata.DateCreated.ToString("MM/dd/yyyy hh:mm:ss");
+
+                                    Friend f = new Friend(metadata.SteamID);
+                                    runEditRunnerName.text = f.Name;
+
+                                    backButton.onClick.RemoveAllListeners();
+                                    backButton.onClick.AddListener(() =>
+                                    {
+                                        runEditMenu.gameObject.SetActive(false);
+                                        runList.gameObject.SetActive(true);
+                                    });
+
+                                    saveButton.onClick.RemoveAllListeners();
+                                    if (editable)
+                                    {
+                                        saveButton.onClick.AddListener(() =>
+                                        {
+                                            if (isDirty)
+                                            {
+                                                isDirty = false;
+                                                metadata.Title = updatedTitle;
+                                                metadata.Description = updatedDesc;
+                                                GhostFileManager.UpdateMetadata(metadata);
+                                            }
+                                        });
+                                    }
+
+                                    deleteButton.onClick.RemoveAllListeners();
+                                    deleteButton.onClick.AddListener(() =>
+                                    {
+                                        GhostFileManager.DeleteRun(metadata);
+                                        runList.gameObject.SetActive(true);
+                                        runEditMenu.gameObject.SetActive(false);
+
+                                        metadatas.Remove(metadata);
+                                        //Remove the button.
+                                        GameObject.Destroy(b.gameObject);
+
+                                        Canvas.ForceUpdateCanvases();
+                                    });
+
+                                    runTime.text = $"TIME: {metadata.GetTimeString()}";
+                                    runStyle.text = $"STYLE: {metadata.StatGoal.Style}";
+                                    runKills.text = $"KILLS: {metadata.StatGoal.Kills}";
+                                    runDeaths.text = $"DEATHS: {metadata.StatGoal.Deaths}";
+                                });
                             });
+
                         });
+
+                        
                     }
 
                 }

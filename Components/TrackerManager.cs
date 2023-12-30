@@ -134,10 +134,10 @@ namespace EasyPZ.Components
 
             switch (trackerType)
             {
+                default:
                 case TrackerType.Compact:
                     prefab = Prefabs.CompactTracker;
                     break;
-                case TrackerType.Modern:
                 case TrackerType.Classic:
                     prefab = Prefabs.ClassicTrackerPrefab;
                     break;
@@ -157,7 +157,14 @@ namespace EasyPZ.Components
                     iTracker.SetStatGoal(currentStatGoal);
         }
 
-        
+        public static void SetCustomGoal(StatGoal goal)
+        {
+            CFG_GoalMode.SetIndex((int)GoalMode.Custom);
+            CFG_CustomGoalKills.SetValue(goal.Kills);
+            CFG_CustomGoalDeaths.SetValue(goal.Deaths);
+            CFG_CustomGoalStyle.SetValue(goal.Style);
+            CFG_CustomGoalSeconds.SetValue(goal.Seconds);
+        }
 
         private void Update()
         {
@@ -474,7 +481,6 @@ namespace EasyPZ.Components
 
     public enum TrackerType
     {
-        Modern,
         Classic,
         Compact,
     }

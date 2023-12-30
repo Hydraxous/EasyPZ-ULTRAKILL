@@ -21,9 +21,6 @@ namespace EasyPZ
 
         private Harmony harmony;
 
-        [Configgable("Ghosts/Manage Runs")]
-        private static RunManagerInterface runMan = new RunManagerInterface();
-
         private void Awake()
         {
             Instance = this;

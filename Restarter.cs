@@ -19,11 +19,11 @@ namespace EasyPZ
         [Configgable("Auto Restart", "Sound Effect On Auto Restart")]
         private static ConfigToggle soundEffectOnAutoRestart = new ConfigToggle(true);
 
-        [Configgable("Auto Restart", "Use custom sound")]
-        private static ConfigToggle useCustomSoundEffect = new ConfigToggle(false);
+        //[Configgable("Auto Restart", "Use custom sound")]
+        //private static ConfigToggle useCustomSoundEffect = new ConfigToggle(false);
 
-        [Configgable("Auto Restart", "Custom sound path")]
-        private static ConfigInputField<string> soundFileLocation = new ConfigInputField<string>("", ValidateSoundFileLocation);
+        //[Configgable("Auto Restart", "Custom sound path")]
+        //private static ConfigInputField<string> soundFileLocation = new ConfigInputField<string>("", ValidateSoundFileLocation);
 
         private static AudioClip _customSound;
 
@@ -64,13 +64,6 @@ namespace EasyPZ
         {
             if (soundEffectOnAutoRestart.Value)
                 audioSource.Play();
-
-            if(restartType.Value == RestartType.Explosion)
-            {
-                //Debug.Log("BOOM!");
-                //EasyPZ.Instance.StartCoroutine(RestartAfterTime(0.5f));
-                //return;
-            }
             
             OptionsManager.Instance.RestartMission();
         }
@@ -111,7 +104,7 @@ namespace EasyPZ
             {
                 if(_restartClip == null)
                 {
-                    _restartClip = Addressables.LoadAssetAsync<AudioClip>("Assets/Music/Hits/gong.wav").WaitForCompletion();
+                    _restartClip = Prefabs.ShittyBoom;
                 }
                 return _restartClip;
             }
@@ -121,7 +114,6 @@ namespace EasyPZ
     public enum RestartType 
     {
         Standard,
-        Explosion,
     }
 
 }
