@@ -29,6 +29,10 @@ namespace EasyPZ.Components
 
         private static RunManagerMenu instance;
 
+        [Configgable("Extras/Advanced", "Notify on update available")]
+        private static ConfigToggle notifyOnUpdateAvailable = new ConfigToggle(true);
+        private static bool openedOnce;
+
         private void Awake()
         {
             instance = this;
@@ -68,16 +72,18 @@ namespace EasyPZ.Components
         {
             ClearMenus();
 
-            Debug.Log("rebuilding run menus");
-
             List<SessionRecordingMetadata> metadatas = GhostFileManager.FetchMetadata();
             List<string> levels = metadatas.Select(x => x.LevelName).Distinct().OrderBy(x => x).ToList();
             Dictionary<string, List<SessionRecordingMetadata>> levelsDict = levels.ToDictionary(x => x, x => metadatas.Where(y => y.LevelName == x).ToList());
+
+            levelsDict = levelsDict.OrderByDescending(x => x.Key == SceneHelper.CurrentScene).ToDictionary(x => x.Key, x => x.Value);
 
             foreach (var levelFolder in levelsDict)
             {
                 GameObject folder = Instantiate(folderListPrefab, foldersRoot);
                 RunList list = folder.GetComponent<RunList>();
+
+                bool isCurrent = levelFolder.Key == SceneHelper.CurrentScene;
 
                 list.SetName(levelFolder.Key);
                 list.SetList(levelFolder.Value, (d) =>
@@ -110,6 +116,11 @@ namespace EasyPZ.Components
                 RectTransform rt = folderButton.GetComponent<RectTransform>();
                 rt.sizeDelta = new Vector2(rt.sizeDelta.x, 35f);
                 t.text = $"{levelFolder.Key} ({levelFolder.Value.Count})";
+                if (isCurrent)
+                {
+                    t.text = $"<color=orange>{t.text}</color>";
+                }
+
                 instancedMenus.Add(folder);
 
                 b.onClick.AddListener(() =>
@@ -225,8 +236,49 @@ namespace EasyPZ.Components
                     m.gameObject.SetActive(false);
                 }
             }
-
             listRoot.gameObject.SetActive(true);
+
+            if (!openedOnce)
+            {
+                openedOnce = true;
+                if(!EasyPZ.UsingLatestVersion && notifyOnUpdateAvailable.Value)
+                {
+                    NotifyUpdateAvailable();
+                }
+            }
+        }
+
+        private void NotifyUpdateAvailable()
+        {
+            ModalDialogue.ShowDialogue(new ModalDialogueEvent()
+            {
+                Title = "Outdated",
+                Message = $"You are using an outdated version of {ConstInfo.NAME}: (<color=red>{ConstInfo.VERSION}</color>). Please update to the latest version: (<color=green>{Plugin.LatestVersion}</color>)",
+                Options = new DialogueBoxOption[]
+                        {
+                            new DialogueBoxOption()
+                            {
+                                Name = "Open Browser",
+                                Color = Color.white,
+                                OnClick = () => Application.OpenURL(ConstInfo.GITHUB_URL+"/releases/latest")
+                            },
+                            new DialogueBoxOption()
+                            {
+                                Name = "Later",
+                                Color = Color.white,
+                                OnClick = () => { }
+                            },
+                            new DialogueBoxOption()
+                            {
+                                Name = "Don't Ask Again.",
+                                Color = Color.red,
+                                OnClick = () =>
+                                {
+                                    notifyOnUpdateAvailable.SetValue(false);
+                                }
+                            }
+                        }
+            });
         }
 
         public void Close()

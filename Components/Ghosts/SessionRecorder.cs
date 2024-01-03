@@ -16,8 +16,9 @@ namespace EasyPZ.Components
 
         private float timeStartedRecording;
 
-        [Configgable("Ghosts/Recording", "Recording Frame Rate")]
+        [Configgable("Ghosts/Recording", "Recording Frame Rate", description:frameRateDescription)]
         private static ConfigInputField<int> recorderFrameRate = new ConfigInputField<int>(16);
+        private const string frameRateDescription = "The frame rate at which the ghost will be recorded. Higher frame rates will result in smoother playback, but larger file sizes. Frames can only be recorded as fast as your system can render them, so setting this higher than your max fps won't record additional frames.";
 
         [Configgable("Ghosts/Recording", "Recording Enabled")]
         private static ConfigToggle recordingEnabled = new ConfigToggle(true);
@@ -107,7 +108,7 @@ namespace EasyPZ.Components
             recording.Metadata.Description = $"My run of {recording.Metadata.LevelName}";
             recording.Metadata.Title = $"My {recording.Metadata.LevelName} run";
 
-            Debug.Log("STARTED RECORDING!");
+            Debug.Log("Ghost Recording Started");
         }
 
         protected override void OnStopSession()
@@ -119,7 +120,7 @@ namespace EasyPZ.Components
             recording.Metadata.CheatsUsed = cheatsUsedInSession;
             recording.Metadata.MajorAssistsUsed = assistsUsedInSession;
             
-            Debug.Log("STOPPED RECORDING!");
+            Debug.Log("Ghost Recording Stopped");
             recording.SetStats(new StatGoal()
             {
                 Deaths = StatsManager.Instance.restarts,
@@ -146,7 +147,7 @@ namespace EasyPZ.Components
             string ext = ".ukrun";
 
             string filePath = Path.Combine(folderPath, date + ext);
-            Debug.Log($"Saved recording {filePath}");
+            Debug.Log($"Saved new ghost: {filePath}");
             File.WriteAllBytes(filePath, recording.ToBytes());
         }
     }

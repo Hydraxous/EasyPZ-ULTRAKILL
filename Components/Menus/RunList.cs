@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,7 +54,7 @@ namespace EasyPZ.Components
         {
             ClearList();
 
-            foreach (var metadata in metadatas)
+            foreach (var metadata in metadatas.OrderByDescending(x=>x.DateCreated.Ticks))
             {
                 GameObject element = Instantiate(listElementPrefab, contentBody);
 
