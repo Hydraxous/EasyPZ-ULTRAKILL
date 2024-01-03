@@ -24,16 +24,16 @@ namespace EasyPZ.Components
         [Configgable("Tracker", "Tracker Type")]
         private static ConfigDropdown<TrackerType> CFG_trackerType = new ConfigDropdown<TrackerType>((TrackerType[])Enum.GetValues(typeof(TrackerType)), ((TrackerType[])Enum.GetValues(typeof(TrackerType))).Select(x => x.ToString()).ToArray(), 1);
 
-        [Configgable("Tracker", "Always Show Tracker")]
+        [Configgable("Tracker", "Always Show Tracker", description:"When disabled the tracker will be tied to the tab stats overlay and will only show when it is on screen.")]
         private static ConfigToggle CFG_AlwaysShowTracker = new ConfigToggle(true);
 
-        [Configgable("Auto Restart", "Only AutoRestart At Level End")]
+        [Configgable("Auto Restart", "Only AutoRestart At Level End", description:"This will only auto-restart if the goal is failed when you finish the level.")]
         private static ConfigToggle CFG_AutoRestartAtLevelEnd = new ConfigToggle(false);
 
         [Configgable("Auto Restart", "Enable Auto Restart")]
         public static ConfigToggle AutoRestartEnabled = new ConfigToggle(false);
 
-        [Configgable("Tracker/Goal", "Use P-Rank Time as PB Goal")]
+        [Configgable("Tracker/Goal", "Use P-Rank stats for Goal", description:"This will use the P-Rank time instead of Any% time for leaderboard based goals.")]
         private static ConfigToggle CFG_UsePRankForLeaderboardGoals = new ConfigToggle(false);
 
         [Configgable("Tracker/Goal", "Goal Mode")]
@@ -106,10 +106,6 @@ namespace EasyPZ.Components
             }
         }
 
-        private void Key_RestartMission_OnRebindStart()
-        {
-            throw new NotImplementedException();
-        }
 
         private void ReinitGoal<T>(T v)
         {
@@ -220,7 +216,7 @@ namespace EasyPZ.Components
         }
 
 
-        [Configgable("Tracker/Customization", "Reposition Tracker")]
+        [Configgable("Tracker", "Reposition Tracker")]
         private static void EnterEditMode()
         {
             if (instance == null)
@@ -295,7 +291,6 @@ namespace EasyPZ.Components
         {
             try
             {
-                Debug.Log("Entered try catch");
                 StartCoroutine(RetrieveLevelScores((r, l) =>
                 {
                     if(r)
@@ -319,7 +314,6 @@ namespace EasyPZ.Components
 
         private static IEnumerator RetrieveLevelScores(Action<bool, LeaderboardEntry[]> onComplete)
         {
-            Debug.Log("Attempting to retrieve level scores.");
             string levelName = SceneHelper.CurrentScene;
             if(LeaderboardController.Instance == null)
             {

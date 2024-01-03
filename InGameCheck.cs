@@ -52,10 +52,7 @@ namespace EasyPZ
             if (scene != SceneManager.GetActiveScene())
                 return;
 
-            Debug.Log($"Loaded scene {SceneHelper.CurrentScene}");
-
             UKLevelType newScene = GetUKLevelType(SceneHelper.CurrentScene);
-            Debug.Log($"Level Type {newScene}");
 
             if (newScene != CurrentLevelType)
             {
@@ -64,7 +61,6 @@ namespace EasyPZ
                 OnLevelTypeChanged?.Invoke(newScene);
             }
 
-            Debug.Log($"WE IN LEVEL? {InLevel()}");
 
 
             OnLevelChanged?.Invoke(CurrentLevelType);
