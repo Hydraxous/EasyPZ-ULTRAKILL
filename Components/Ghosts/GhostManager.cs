@@ -11,7 +11,7 @@ namespace EasyPZ.Components
 {
     public class GhostManager : LevelSessionBehaviour
     {
-        [Configgable("Ghosts/Playback", "Max Ghosts")]
+        [Configgable("Ghosts/Playback", "Max Ghosts", description:"Hard cap on ghosts to spawn regardless of selected amount.")]
         private static ConfigInputField<int> maxGhosts = new ConfigInputField<int>(3);
 
         [Configgable("Ghosts/Playback", "Ghosts Enabled")]
@@ -19,6 +19,10 @@ namespace EasyPZ.Components
 
         [Configgable("Ghosts/Playback", "Ghost Opacity")]
         private static FloatSlider ghostOpacity = new FloatSlider(1f, 0f, 1f);
+
+        [Configgable("Ghosts/Playback", "Ghost Spawn Order", description:ghostSpawnPatternDescription)]
+        private static ConfigDropdown<GhostSpawnOrderType> ghostSpawningPattern = new ConfigDropdown<GhostSpawnOrderType>((GhostSpawnOrderType[])Enum.GetValues(typeof(GhostSpawnOrderType)));
+        const string ghostSpawnPatternDescription = "Changes how the selection of max ghosts are spawned.";
 
         private static GameObject GhostPlayerPrefab
         {
@@ -93,7 +97,8 @@ namespace EasyPZ.Components
         private void Start()
         {
             ghostsEnabled.OnValueChanged += SetGhostsEnabled;
-            maxGhosts.OnValueChanged += OnMaxGhostsChanged;
+            maxGhosts.OnValueChanged += ResetGhostsFromEvent<int>;
+            ghostSpawningPattern.OnValueChanged += ResetGhostsFromEvent<GhostSpawnOrderType>;
 
             SetGhostsEnabled(ghostsEnabled.Value);
         }
@@ -105,7 +110,10 @@ namespace EasyPZ.Components
             string folderPath = Path.Combine(Paths.ghostRecordingPath.Value, sceneName);
 
             if (!Directory.Exists(folderPath))
+            {
+                loadedRecordings = new List<SessionRecording>();
                 return;
+            }
 
             DirectoryInfo info = new DirectoryInfo(folderPath);
 
@@ -167,7 +175,7 @@ namespace EasyPZ.Components
             }
         }
 
-        private void OnMaxGhostsChanged(int maxGhosts)
+        private void ResetGhostsFromEvent<T>(T _)
         {
             ResetGhosts();
         }
@@ -179,6 +187,9 @@ namespace EasyPZ.Components
 
             DisposeGhosts();
             SpawnGhosts();
+
+            if (started)
+                PlayGhosts();
         }
 
         private void SpawnGhosts()
@@ -188,14 +199,38 @@ namespace EasyPZ.Components
             if (loadedRecordings == null)
                 LoadRecordings();
 
-            IEnumerable<SessionRecording> recordingsToSpawn = loadedRecordings.Where(x => enabledGhosts.ContainsKey(x.Metadata.LocatedFilePath) && enabledGhosts[x.Metadata.LocatedFilePath]).OrderBy(x => x.GetTotalTime());
-            int takeCount = Mathf.Min(maxGhosts.Value, recordingsToSpawn.Count());
-            
             //Sort by lowest time
-            foreach (var x in recordingsToSpawn.Take(takeCount))
+            foreach (var x in SelectRecordings())
             {
                 SpawnGhost(x);
             }
+        }
+
+        private IEnumerable<SessionRecording> SelectRecordings()
+        {
+            if(loadedRecordings.Count == 0)
+                return Enumerable.Empty<SessionRecording>();
+
+            IEnumerable<SessionRecording> recordings = loadedRecordings.Where(x => enabledGhosts.ContainsKey(x.Metadata.LocatedFilePath) && enabledGhosts[x.Metadata.LocatedFilePath]);
+
+            if(recordings.Count() == 0)
+                return Enumerable.Empty<SessionRecording>();
+
+            switch (ghostSpawningPattern.Value)
+            {
+                case GhostSpawnOrderType.Fastest:
+                    recordings = recordings.OrderBy(x => x.GetTotalTime());
+                    break;
+                case GhostSpawnOrderType.Slowest:
+                    recordings = recordings.OrderByDescending(x => x.GetTotalTime());
+                    break;
+                case GhostSpawnOrderType.MostRecent:
+                    recordings = recordings.OrderByDescending(x => x.Metadata.DateCreated.Ticks);
+                    break;
+            }
+
+            int takeCount = Mathf.Min(maxGhosts.Value, recordings.Count());
+            return recordings.Take(takeCount);
         }
 
         private void SpawnGhost(SessionRecording recording)
@@ -223,7 +258,8 @@ namespace EasyPZ.Components
         private void OnDestroy()
         {
             ghostsEnabled.OnValueChanged -= SetGhostsEnabled;
-            maxGhosts.OnValueChanged -= OnMaxGhostsChanged;
+            maxGhosts.OnValueChanged -= ResetGhostsFromEvent<int>;
+            ghostSpawningPattern.OnValueChanged -= ResetGhostsFromEvent<GhostSpawnOrderType>;
         }
 
         private static GameObject BuildGhostPlayerPrefab()
@@ -293,7 +329,6 @@ namespace EasyPZ.Components
 
                 ghostOpacity.OnValueChanged += (v) =>
                 {
-                    Debug.Log($"Setting ghost opac {v}");
                     foreach (var material in createdMaterials)
                     {
                         Color color = material.color;
@@ -328,5 +363,12 @@ namespace EasyPZ.Components
                 Destroy(c);
             }
         }
+    }
+
+    public enum GhostSpawnOrderType
+    {
+        Fastest,
+        Slowest,
+        MostRecent,
     }
 }

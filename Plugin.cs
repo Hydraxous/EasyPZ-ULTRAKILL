@@ -21,6 +21,10 @@ namespace EasyPZ
 
         private Harmony harmony;
 
+        public static string LatestVersion { get; private set; } = ConstInfo.VERSION;
+        public static bool UsingLatestVersion { get; private set; } = true;
+
+
         private void Awake()
         {
             Instance = this;
@@ -34,6 +38,17 @@ namespace EasyPZ
 
             InGameCheck.Init();
             GhostManager.PreloadGhostPrefab();
+
+            VersionCheck.CheckVersion(ConstInfo.GITHUB_VERSION_URL, ConstInfo.VERSION, (r, version) =>
+            {
+                UsingLatestVersion = r;
+                if (!r)
+                {
+                    LatestVersion = version;
+                    Debug.LogWarning($"EasyPZ is out of date. New version available ({version})");
+                }
+
+            });
 
             Logger.LogInfo("EasyPZ Loaded. Good luck on P-ing in all the levels! :D");
         }
