@@ -1,21 +1,29 @@
-### Issue Template
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
-**Description:**
-Please provide a detailed description of the issue.
+---
 
-**Steps to Reproduce:**
-1. Step 1
-2. Step 2
-3. ...
+**Describe the bug**
+A clear and concise description of what the bug is.
 
-**Expected Behavior:**
-Describe what you expected to happen.
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Do '....'
+3. Behold Error
 
-**Actual Behavior:**
-Describe what actually happened.
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-**Additional Information:**
-Any additional information or context about the issue.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+**Additional context**
+Add any other context about the problem here.
 
 **Note:**
 If possible, please attach a BepInEx log file to help me diagnose the issue. This can provide crucial information.
