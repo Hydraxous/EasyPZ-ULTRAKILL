@@ -6,16 +6,17 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using EasyPZ.Ghosts;
 
 namespace EasyPZ.Components
 {
     public class GhostPlayer : MonoBehaviour, IDisposable
     {
-        SessionRecording recording;
+        GhostRecording recording;
         private Animator animator;
         private Transform[] rotationTransforms;
 
-        public void SetRecording(SessionRecording recording)
+        public void SetRecording(GhostRecording recording)
         {
             this.recording = recording;
         }
@@ -83,7 +84,7 @@ namespace EasyPZ.Components
                 return;
 
             float timeElapsed = Time.time - timeStarted;
-            SessionRecordingFrame[] frames = recording.GetNearestTwoFrames(timeElapsed);
+            GhostRecordingFrame[] frames = recording.GetNearestTwoFrames(timeElapsed);
 
             if (frames == null)
                 return;

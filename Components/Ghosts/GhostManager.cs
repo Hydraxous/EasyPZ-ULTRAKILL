@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
+using EasyPZ.Ghosts;
 
 namespace EasyPZ.Components
 {
@@ -15,7 +16,7 @@ namespace EasyPZ.Components
         private static ConfigInputField<int> maxGhosts = new ConfigInputField<int>(3);
 
         [Configgable("Ghosts/Playback", "Ghosts Enabled")]
-        private static ConfigToggle ghostsEnabled = new ConfigToggle(true);
+        public static ConfigToggle GhostsEnabled = new ConfigToggle(false);
 
         [Configgable("Ghosts/Playback", "Ghost Opacity")]
         private static FloatSlider ghostOpacity = new FloatSlider(1f, 0f, 1f);
@@ -40,7 +41,7 @@ namespace EasyPZ.Components
 
 
         private List<GhostPlayer> ghostPlayers;
-        private List<SessionRecording> loadedRecordings;
+        private List<GhostRecording> loadedRecordings;
 
         private bool spawnedGhosts => ghostPlayers != null;
         private float timeStarted;
@@ -96,11 +97,11 @@ namespace EasyPZ.Components
 
         private void Start()
         {
-            ghostsEnabled.OnValueChanged += SetGhostsEnabled;
+            GhostsEnabled.OnValueChanged += SetGhostsEnabled;
             maxGhosts.OnValueChanged += ResetGhostsFromEvent<int>;
             ghostSpawningPattern.OnValueChanged += ResetGhostsFromEvent<GhostSpawnOrderType>;
 
-            SetGhostsEnabled(ghostsEnabled.Value);
+            SetGhostsEnabled(GhostsEnabled.Value);
         }
 
         private void LoadRecordings()
@@ -111,18 +112,18 @@ namespace EasyPZ.Components
 
             if (!Directory.Exists(folderPath))
             {
-                loadedRecordings = new List<SessionRecording>();
+                loadedRecordings = new List<GhostRecording>();
                 return;
             }
 
             DirectoryInfo info = new DirectoryInfo(folderPath);
 
-            List<SessionRecording> recordings = new List<SessionRecording>();
+            List<GhostRecording> recordings = new List<GhostRecording>();
             foreach (var x in info.GetFiles("*.ukrun", SearchOption.TopDirectoryOnly))
             {
                 try
                 {
-                    SessionRecording recording = SessionRecording.LoadFromBytes(File.ReadAllBytes(x.FullName));
+                    GhostRecording recording = GhostRecording.LoadFromBytes(File.ReadAllBytes(x.FullName));
                     recording.Metadata.LocatedFilePath = x.FullName;
                     Debug.Log($"Loaded recording {x.Name} with {recording.frames.Count} frames");
                     recordings.Add(recording);
@@ -141,7 +142,7 @@ namespace EasyPZ.Components
         {
             timeStarted = Time.time;
 
-            if (ghostsEnabled.Value)
+            if (GhostsEnabled.Value)
                 PlayGhosts();
         }
 
@@ -182,7 +183,7 @@ namespace EasyPZ.Components
 
         private void ResetGhosts()
         {
-            if (!spawnedGhosts || !ghostsEnabled.Value)
+            if (!spawnedGhosts || !GhostsEnabled.Value)
                 return;
 
             DisposeGhosts();
@@ -206,15 +207,15 @@ namespace EasyPZ.Components
             }
         }
 
-        private IEnumerable<SessionRecording> SelectRecordings()
+        private IEnumerable<GhostRecording> SelectRecordings()
         {
             if(loadedRecordings.Count == 0)
-                return Enumerable.Empty<SessionRecording>();
+                return Enumerable.Empty<GhostRecording>();
 
-            IEnumerable<SessionRecording> recordings = loadedRecordings.Where(x => enabledGhosts.ContainsKey(x.Metadata.LocatedFilePath) && enabledGhosts[x.Metadata.LocatedFilePath]);
+            IEnumerable<GhostRecording> recordings = loadedRecordings.Where(x => enabledGhosts.ContainsKey(x.Metadata.LocatedFilePath) && enabledGhosts[x.Metadata.LocatedFilePath]);
 
             if(recordings.Count() == 0)
-                return Enumerable.Empty<SessionRecording>();
+                return Enumerable.Empty<GhostRecording>();
 
             switch (ghostSpawningPattern.Value)
             {
@@ -233,7 +234,7 @@ namespace EasyPZ.Components
             return recordings.Take(takeCount);
         }
 
-        private void SpawnGhost(SessionRecording recording)
+        private void SpawnGhost(GhostRecording recording)
         {
             GameObject go = Instantiate(GhostPlayerPrefab);
             go.SetActive(true);
@@ -246,18 +247,18 @@ namespace EasyPZ.Components
 
         private void DisposeGhosts()
         {
+            if (ghostPlayers == null)
+                return;
+
             foreach (var gp in ghostPlayers)
-            {
-                if (gp != null)
-                    gp.Dispose();
-            }
+                gp?.Dispose();
 
             ghostPlayers = null;
         }
 
         private void OnDestroy()
         {
-            ghostsEnabled.OnValueChanged -= SetGhostsEnabled;
+            GhostsEnabled.OnValueChanged -= SetGhostsEnabled;
             maxGhosts.OnValueChanged -= ResetGhostsFromEvent<int>;
             ghostSpawningPattern.OnValueChanged -= ResetGhostsFromEvent<GhostSpawnOrderType>;
         }

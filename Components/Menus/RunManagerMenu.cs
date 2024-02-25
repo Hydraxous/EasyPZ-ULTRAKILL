@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using EasyPZ.Ghosts;
 
 namespace EasyPZ.Components
 {
@@ -72,9 +73,9 @@ namespace EasyPZ.Components
         {
             ClearMenus();
 
-            List<SessionRecordingMetadata> metadatas = GhostFileManager.FetchMetadata();
+            List<GhostRecordingMetadata> metadatas = GhostFileManager.FetchMetadata();
             List<string> levels = metadatas.Select(x => x.LevelName).Distinct().OrderBy(x => x).ToList();
-            Dictionary<string, List<SessionRecordingMetadata>> levelsDict = levels.ToDictionary(x => x, x => metadatas.Where(y => y.LevelName == x).ToList());
+            Dictionary<string, List<GhostRecordingMetadata>> levelsDict = levels.ToDictionary(x => x, x => metadatas.Where(y => y.LevelName == x).ToList());
 
             levelsDict = levelsDict.OrderByDescending(x => x.Key == SceneHelper.CurrentScene).ToDictionary(x => x.Key, x => x.Value);
 
@@ -158,7 +159,7 @@ namespace EasyPZ.Components
             }
         }
 
-        private void OpenRunInEditor(SessionRecordingMetadata metadata)
+        private void OpenRunInEditor(GhostRecordingMetadata metadata)
         {
             runEditor.SetRecording(metadata);
             runEditor.gameObject.SetActive(true);

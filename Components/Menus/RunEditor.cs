@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using EasyPZ.Ghosts;
 
 namespace EasyPZ.Components
 {
@@ -13,11 +14,9 @@ namespace EasyPZ.Components
     {
         [SerializeField] private RunManagerMenu runManager;
 
-        [SerializeField] private Text runFileName;
-
         [SerializeField] private Text levelText;
-        [SerializeField] private Text runnerNameText;
         [SerializeField] private Text dateCreatedText;
+        [SerializeField] private Text difficultyNameText;
 
         [SerializeField] private Text goalKillsText;
         [SerializeField] private Text goalStyleText;
@@ -35,6 +34,8 @@ namespace EasyPZ.Components
         [SerializeField] private Button deleteButton;
         [SerializeField] private Button setCustomGoalButton;
 
+        [SerializeField] private InputField fileNameField;
+        [SerializeField] private InputField runnerNameField;
         [SerializeField] private InputField titleField;
         [SerializeField] private InputField descriptionField;
 
@@ -43,7 +44,7 @@ namespace EasyPZ.Components
 
         public Button BackButton => backButton;
 
-        public void SetRecording(SessionRecordingMetadata metadata)
+        public void SetRecording(GhostRecordingMetadata metadata)
         {
             bool steamValid = SteamClient.IsValid;
             bool isOwner = false;
@@ -55,13 +56,9 @@ namespace EasyPZ.Components
 
             bool inLevelOfRun = metadata.LevelName == SceneHelper.CurrentScene;
 
-            runFileName.text = "-- "+Path.GetFileNameWithoutExtension(metadata.LocatedFilePath) + " --";
             levelText.text = metadata.LevelName;
 
-            if (SteamClient.IsValid)
-                runnerNameText.text = new Friend(metadata.SteamID).Name;
-            else
-                runnerNameText.text = $"Player ({metadata.SteamID.ToString().Substring(0,5)}...)";
+            
 
             dateCreatedText.text = metadata.DateCreated.ToString("MM/dd/yyyy hh:mm:ss");
 
@@ -69,6 +66,14 @@ namespace EasyPZ.Components
             goalStyleText.text = metadata.StatGoal.Style.ToString("000");
             goalTimeText.text = metadata.GetTimeString();
             goalDeathsText.text = metadata.StatGoal.Deaths.ToString("000");
+
+            difficultyNameText.text = "-- " + ParseDifficultyName(metadata.Difficulty) + " --";
+
+            string fileName = Path.GetFileNameWithoutExtension(metadata.LocatedFilePath);
+
+            fileNameField.SetTextWithoutNotify(fileName);
+            fileNameField.onEndEdit.RemoveAllListeners();
+            fileNameField.interactable = isOwner;
 
             titleField.SetTextWithoutNotify(metadata.Title);
             titleField.onEndEdit.RemoveAllListeners();
@@ -81,18 +86,62 @@ namespace EasyPZ.Components
             descriptionField.interactable = isOwner;
 
             string desc = metadata.Description;
+
+            string runnerName = metadata.RunnerName;
+
+            //Possible old file.
+            if (string.IsNullOrEmpty(runnerName))
+            {
+                if (SteamClient.IsValid)
+                    runnerName = new Friend(metadata.SteamID).Name;
+                else
+                    runnerName = $"Player ({metadata.SteamID.ToString().Substring(0, 5)}...)";
+            }
+            
+            runnerNameField.SetTextWithoutNotify(runnerName);
+            runnerNameField.onEndEdit.RemoveAllListeners();
+            runnerNameField.interactable = isOwner;
+            
+            Func<bool> changesMade = () =>
+            {
+                return desc != metadata.Description || title != metadata.Title || fileName != Path.GetFileNameWithoutExtension(metadata.LocatedFilePath) || runnerName != metadata.RunnerName;
+            };
+
             if (isOwner)
             {
                 descriptionField.onEndEdit.AddListener((string text) =>
                 {
                     desc = text;
-                    saveButton.gameObject.SetActive(desc != metadata.Description || title != metadata.Title);
+                    saveButton.gameObject.SetActive(changesMade());
                 });
 
                 titleField.onEndEdit.AddListener((string text) =>
                 {
                     title = text;
-                    saveButton.gameObject.SetActive(desc != metadata.Description || title != metadata.Title);
+                    saveButton.gameObject.SetActive(changesMade());
+                });
+
+                fileNameField.onEndEdit.AddListener((string text) =>
+                {
+                    bool valid = true;
+
+                    valid &= !string.IsNullOrEmpty(text);
+                    valid &= text.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+
+                    if (!valid)
+                    {
+                        fileNameField.SetTextWithoutNotify(fileName);
+                        return;
+                    }
+
+                    fileName = text;
+                    saveButton.gameObject.SetActive(changesMade());
+                });
+
+                runnerNameField.onEndEdit.AddListener((string text) =>
+                {
+                    runnerName = text;
+                    saveButton.gameObject.SetActive(changesMade());
                 });
             }
 
@@ -118,7 +167,15 @@ namespace EasyPZ.Components
                 {
                     metadata.Title = title;
                     metadata.Description = desc;
+                    metadata.RunnerName = runnerName;
+
                     GhostFileManager.UpdateMetadata(metadata);
+                    
+                    if(fileName != Path.GetFileNameWithoutExtension(metadata.LocatedFilePath))
+                    {
+                        GhostFileManager.RenameRun(metadata, fileName);
+                    }
+
                     saveButton.gameObject.SetActive(false);
 
                     runManager.RebuildMenu();
@@ -152,6 +209,27 @@ namespace EasyPZ.Components
                     TrackerManager.SetCustomGoal(metadata.StatGoal);
                     setCustomGoalButton.onClick.RemoveAllListeners();
                 });
+            }
+        }
+
+        private string ParseDifficultyName(int difficulty)
+        {
+            switch (difficulty)
+            {
+                case 0:
+                    return "HARMLESS";
+                case 1:
+                    return "LENIENT";
+                case 2:
+                    return "STANDARD";
+                case 3:
+                    return "VIOLENT";
+                case 4:
+                    return "BRUTAL";
+                case 5:
+                    return "ULTRAKILL MUST DIE";
+                default:
+                    return "UNKNOWN DIFFICULTY";
             }
         }
     }

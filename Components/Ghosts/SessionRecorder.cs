@@ -7,12 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using EasyPZ.Ghosts;
 
 namespace EasyPZ.Components
 {
     public class SessionRecorder : LevelSessionBehaviour
     {
-        private SessionRecording recording;
+        private GhostRecording recording;
 
         private float timeStartedRecording;
 
@@ -21,7 +22,11 @@ namespace EasyPZ.Components
         private const string frameRateDescription = "The frame rate at which the ghost will be recorded. Higher frame rates will result in smoother playback, but larger file sizes. Frames can only be recorded as fast as your system can render them, so setting this higher than your max fps won't record additional frames.";
 
         [Configgable("Ghosts/Recording", "Recording Enabled")]
-        private static ConfigToggle recordingEnabled = new ConfigToggle(true);
+        private static ConfigToggle recordingEnabled = new ConfigToggle(false);
+
+        [Configgable("Ghosts/Recording", "My Ghost Color", description:defaultGhostColorDescription)]
+        private static ConfigColor defaultGhostColor = new ConfigColor(UnityEngine.Color.red);
+        private const string defaultGhostColorDescription = "The default color of the ghost in your recorded runs. Please note, this feature is still a work in progress and is not functional yet.";
 
         private bool recordCurrentSession = false;
         private float lastFrameTime;
@@ -29,6 +34,24 @@ namespace EasyPZ.Components
 
         private bool cheatsUsedInSession;
         private bool assistsUsedInSession;
+
+
+
+        private void Awake()
+        {
+            if (Data.Cache.AskedAboutRecording)
+                return;
+
+            Data.Cache.AskedAboutRecording = true;
+            Data.SaveCache();
+
+            ModalDialogue.ShowSimple("Ghosts!?", "EasyPZ will record your movements as you play, save them when you complete a level, and play them back to you as rival ghosts to race against. Would you like to enable this feature? (This can be changed in the EasyPZ options later.)", (r) =>
+            {
+                recordingEnabled.SetValue(r);
+                GhostManager.GhostsEnabled.SetValue(r);
+            },
+            "Enable Ghosts", "Disable Ghosts");
+        }
 
         protected override void OnSessionUpdate()
         {
@@ -50,7 +73,7 @@ namespace EasyPZ.Components
                 assistsUsedInSession = true;
             }
 
-            recording.frames.Add(new SessionRecordingFrame()
+            recording.frames.Add(new GhostRecordingFrame()
             {
                 position = NewMovement.Instance.transform.position,
                 rotation = new Vector2(CameraController.Instance.transform.localEulerAngles.x, CameraController.Instance.transform.eulerAngles.y),
@@ -88,19 +111,23 @@ namespace EasyPZ.Components
             }
 
             timeStartedRecording = Time.time;
-            recording = new SessionRecording();
+            recording = new GhostRecording();
             
             recording.Metadata.DateCreated = DateTime.Now;
             recording.Metadata.ModVersion = ConstInfo.VERSION;
             recording.Metadata.GameVersion = Application.version;
 
+            recording.Metadata.RunnerColor = defaultGhostColor.Value; 
+
             if (SteamClient.IsValid)
             {
                 recording.Metadata.SteamID = SteamClient.SteamId.Value;
+                recording.Metadata.RunnerName = SteamClient.Name;
             }
             else
             {
                 recording.Metadata.SteamID = 0;
+                recording.Metadata.RunnerName = null;
             }
 
             recording.Metadata.Difficulty = PrefsManager.Instance.GetInt("difficulty", 0);
@@ -119,7 +146,7 @@ namespace EasyPZ.Components
             recording.Metadata.NoDamage = !StatsManager.Instance.tookDamage;
             recording.Metadata.CheatsUsed = cheatsUsedInSession;
             recording.Metadata.MajorAssistsUsed = assistsUsedInSession;
-            
+
             Debug.Log("Ghost Recording Stopped");
             recording.SetStats(new StatGoal()
             {

@@ -34,7 +34,7 @@ namespace EasyPZ
             harmony.PatchAll();
 
             ConfigBuilder = new ConfigBuilder(ConstInfo.GUID, ConstInfo.NAME);
-            ConfigBuilder.Build();
+            ConfigBuilder.BuildAll();
 
             InGameCheck.Init();
             GhostManager.PreloadGhostPrefab();

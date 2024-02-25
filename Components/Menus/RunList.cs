@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using EasyPZ.Ghosts;
+
 
 namespace EasyPZ.Components
 {
@@ -16,11 +18,21 @@ namespace EasyPZ.Components
         [SerializeField] private Button selectAllButton;
         [SerializeField] private Button deselectAllButton;
         [SerializeField] private Button backButton;
+        [SerializeField] private InputField searchField;
         [SerializeField] private Text levelNameText;
 
+        private Dictionary<GameObject, HashSet<string>> namedElements;
         private List<GameObject> instancedElements;
 
         private bool isInLevelOfFolder;
+
+        private void Awake()
+        {
+            searchField.onEndEdit.AddListener((string text) =>
+            {
+                UpdateSearch(text);
+            });
+        }
 
         public void SetName(string name)
         {
@@ -43,14 +55,16 @@ namespace EasyPZ.Components
                 }
 
                 instancedElements.Clear();
+                namedElements.Clear();
             }
             else
             {
                 instancedElements = new List<GameObject>();
+                namedElements = new Dictionary<GameObject, HashSet<string>>();
             }
         }
 
-        public void SetList(List<SessionRecordingMetadata> metadatas, Action<SessionRecordingMetadata> onRunSelected)
+        public void SetList(List<GhostRecordingMetadata> metadatas, Action<GhostRecordingMetadata> onRunSelected)
         {
             ClearList();
 
@@ -63,6 +77,18 @@ namespace EasyPZ.Components
                 Toggle toggle = element.GetComponentInChildren<Toggle>();
 
                 instancedElements.Add(element);
+                namedElements.Add(element, new HashSet<string>());
+
+                namedElements[element].Add(metadata.GetFileName());
+
+                if (!string.IsNullOrEmpty(metadata.Description))
+                    namedElements[element].Add(metadata.Description);
+
+                if (!string.IsNullOrEmpty(metadata.Title))
+                    namedElements[element].Add(metadata.Title);
+
+                if (!string.IsNullOrEmpty(metadata.RunnerName))
+                    namedElements[element].Add(metadata.RunnerName);
 
                 string playerName = "Player (" + metadata.SteamID.ToString().Substring(0,5) +"...)";
 
@@ -104,6 +130,37 @@ namespace EasyPZ.Components
                     toggle.isOn = false;
                 }
             });
+        }
+
+        private void UpdateSearch(string text)
+        {
+            if (instancedElements == null || namedElements == null)
+                return;
+
+            if (string.IsNullOrEmpty(text))
+            {
+                foreach(var x in instancedElements)
+                {
+                    x.SetActive(true);
+                }
+                return;
+            }
+
+            foreach (var x in namedElements)
+            {
+                bool found = false;
+
+                foreach (var y in x.Value)
+                {
+                    if (y.ToLower().Contains(text.ToLower()))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                x.Key.SetActive(found);
+            }
         }
 
 
