@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 
 namespace EasyPZ
 {
-    [BepInPlugin("Hydraxous.ULTRAKILL.EasyPZ", "EasyPZ", "3.0.0")]
+    [BepInPlugin(ConstInfo.GUID, ConstInfo.NAME, ConstInfo.VERSION)]
     [BepInDependency("Hydraxous.ULTRAKILL.Configgy", BepInDependency.DependencyFlags.HardDependency)]
     public class EasyPZ : BaseUnityPlugin
     {
