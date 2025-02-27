@@ -254,7 +254,7 @@ namespace EasyPZ.Components
             ModalDialogue.ShowDialogue(new ModalDialogueEvent()
             {
                 Title = "Outdated",
-                Message = $"You are using an outdated version of {ConstInfo.NAME}: (<color=red>{ConstInfo.VERSION}</color>). Please update to the latest version: (<color=green>{Plugin.LatestVersion}</color>)",
+                Message = $"You are using an outdated version of {ConstInfo.NAME}: (<color=red>{ConstInfo.VERSION}</color>). Please update to the latest version: (<color=green>{EasyPZ.LatestVersion}</color>)",
                 Options = new DialogueBoxOption[]
                         {
                             new DialogueBoxOption()
