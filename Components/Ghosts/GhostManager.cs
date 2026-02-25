@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
 using EasyPZ.Ghosts;
+using Sandbox;
 
 namespace EasyPZ.Components
 {
@@ -251,7 +252,12 @@ namespace EasyPZ.Components
                 return;
 
             foreach (var gp in ghostPlayers)
-                gp?.Dispose();
+            {
+                if(gp != null)
+                {
+                    gp.Dispose();
+                }
+            }
 
             ghostPlayers = null;
         }
@@ -282,9 +288,11 @@ namespace EasyPZ.Components
                 RemoveAllComponent<Rigidbody>(newPrefab);
                 RemoveAllComponent<Collider>(newPrefab);
                 RemoveAllComponent<Machine>(newPrefab);
+                RemoveAllComponent<Enemy>(newPrefab);
                 RemoveAllComponent<NavMeshAgent>(newPrefab);
                 RemoveAllComponent<EnemyIdentifier>(newPrefab);
                 RemoveAllComponent<EnemyIdentifierIdentifier>(newPrefab);
+                RemoveAllComponent<EnemySpawnableInstance>(newPrefab);
                 RemoveAllComponent<GroundCheckEnemy>(newPrefab);
                 RemoveAllComponent<BulletCheck>(newPrefab);
                 RemoveAllComponent<EnemySimplifier>(newPrefab);
